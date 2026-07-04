@@ -3,7 +3,7 @@ plugins:
   - local: npm/node_modules/.bin/protoc-gen-ts_proto
     out: npm/src
     opt:
-      - outputServices=none
-      - outputEncodeMethods=false
+      - outputServices=grpc-js
       - outputJsonMethods=false
       - esModuleInterop=true
+      - forceLong=bigint

@@ -1,7 +1,7 @@
 {
   "name": "@m1kad0/hannah-proto",
   "version": "0.0.0",
-  "description": "Generated TypeScript types for the Hannah voice assistant proto schema",
+  "description": "Generated TypeScript gRPC-js client stubs for the Hannah voice assistant proto schema",
   "license": "UNLICENSED",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -15,8 +15,15 @@
     "buf": "sh scripts/generate.sh",
     "build": "npm run buf && tsc"
   },
+  "peerDependencies": {
+    "@grpc/grpc-js": "^1.10.0"
+  },
   "devDependencies": {
-    "ts-proto": "^2.12.0",
-    "typescript": "^5.6.0"
+    "@grpc/grpc-js": "^1.14.4",
+    "ts-proto": "2.12.0",
+    "typescript": "6.0.3"
+  },
+  "allowScripts": {
+    "protobufjs@7.6.5": true
   }
 }

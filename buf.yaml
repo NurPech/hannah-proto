@@ -1,6 +1,10 @@
 version: v2
 modules:
   - path: .
+    excludes:
+      # npm/node_modules vendors its own .proto files (e.g. @grpc/grpc-js,
+      # protobufjs) — not ours to lint/build.
+      - npm/node_modules
 lint:
   use:
     - BASIC

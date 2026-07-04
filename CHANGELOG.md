@@ -8,7 +8,11 @@
 
 
 
+
 ## **WORK IN PROGRESS**
+
+## 0.3.4
+* Changed: `@m1kad0/hannah-proto` now generates real `@grpc/grpc-js`-compatible service clients (`ts-proto` `outputServices=grpc-js`, `forceLong=bigint`) instead of bare message types — usable as a drop-in for consumers currently doing dynamic `@grpc/proto-loader` loading. `@grpc/grpc-js` is a peerDependency. Also excludes `npm/node_modules` from `buf`'s module scan, since installing `@grpc/grpc-js`/`protobufjs` pulls in their own vendored `.proto` files that `buf` was otherwise picking up and failing to build
 
 ## 0.3.3
 * Added: CI publishes generated TypeScript types to the public npm registry (`@m1kad0/hannah-proto`) on tag — pilot for TS/npm consumers, third distribution channel alongside PyPI and Go. `ts-proto` emits types only (no service/client code); the codegen itself lives in `npm/scripts/generate.sh` (`npm run buf` / `npm run build`) rather than inline in CI
