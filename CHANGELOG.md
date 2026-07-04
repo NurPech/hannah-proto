@@ -6,7 +6,11 @@
 
 
 
+
 ## **WORK IN PROGRESS**
+
+## 0.3.2
+* Added: `publish:go` now also generates `version.go` (`hannahproto.ProtoVersion`), matching `hannah_proto.PROTO_VERSION` on the PyPI side — the Go module was published without any way to read `PROTO_VERSION` at runtime
 
 ## 0.3.1
 * **Breaking**: `go_package` changed from `dev.kernstock.net/.../hannah/proxy/proto/hannah` to `github.com/NurPech/hannah-proto-go;hannahproto` — the internal Go proxy consumer must update its import path
