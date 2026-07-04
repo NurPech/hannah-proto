@@ -5,7 +5,13 @@
 -->
 
 
+
 ## **WORK IN PROGRESS**
+
+## 0.3.1
+* **Breaking**: `go_package` changed from `dev.kernstock.net/.../hannah/proxy/proto/hannah` to `github.com/NurPech/hannah-proto-go;hannahproto` — the internal Go proxy consumer must update its import path
+* Added: CI generates Go gRPC stubs and publishes them to the public `github.com/NurPech/hannah-proto-go` repo on tag — Go has no package registry, so the tagged public repo itself is the distribution channel `go get` resolves
+* Changed: `publish:pypi` now uploads to the real public PyPI (`pypi.org`) instead of this project's GitLab package registry — self-hosters of the public Hannah need `pip install` to work without GitLab credentials
 
 ## 0.3.0
 * Added: CI now gates MRs on `buf lint`/`buf breaking`; a breaking change must bump the new `PROTO_VERSION` file to pass — clients and Hannah are meant to exchange it on every call to reject a schema mismatch at runtime

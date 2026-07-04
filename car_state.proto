@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package hannah;
 
-option go_package = "dev.kernstock.net/gessinger/voice/hannah/proxy/proto/hannah";
+option go_package = "github.com/NurPech/hannah-proto-go;hannahproto";
 
 message CarStateResponse {
   bool         available = 1;  // false if no MQTT data received yet

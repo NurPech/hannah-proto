@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package hannah;
 
-option go_package = "dev.kernstock.net/gessinger/voice/hannah/proxy/proto/hannah";
+option go_package = "github.com/NurPech/hannah-proto-go;hannahproto";
 
 message EnrollVoiceprintRequest {
   string user_id     = 1;  // Hannah user this voice sample belongs to (users.id, stable)
