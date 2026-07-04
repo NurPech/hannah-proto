@@ -253,7 +253,7 @@ async function start() {
 
     const wipEntries = originalContent.substring(wipIndex + CONFIG.wipMarker.length, nextVersionIndex).trim();
     if (!wipEntries) exit(`WIP-Sektion ist leer — kein Release ohne Changelog-Einträge möglich.`);
-    const replacement = `\n## ${newVersion}\n${wipEntries}\n`;
+    const replacement = `\n${CONFIG.wipMarker}\n\n## ${newVersion}\n${wipEntries}\n`;
     const newContent = originalContent.replace(
         originalContent.substring(wipIndex, nextVersionIndex),
         replacement,

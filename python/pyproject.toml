@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "hannah-proto"
+version = "0.0.0"
+description = "Generated Python gRPC stubs for the Hannah voice assistant proto schema"
+requires-python = ">=3.9"
+dependencies = [
+    "grpcio>=1.60",
+    "protobuf>=4.25",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["hannah_proto*"]
