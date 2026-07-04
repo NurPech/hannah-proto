@@ -2,9 +2,6 @@ syntax = "proto3";
 
 package hannah;
 
-option java_package = "io.hannah";
-option java_outer_classname = "HannahProto";
-
 option go_package = "dev.kernstock.net/gessinger/voice/hannah/proxy/proto/hannah";
 
 import "shared.proto";

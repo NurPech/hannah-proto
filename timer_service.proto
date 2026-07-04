@@ -29,11 +29,12 @@ message TimerNotReady {
 
 // Hannah instructs the timer service to create a new timer.
 message TimerCreate {
-  string           timer_id  = 1;  // UUID assigned by Hannah
-  string           label     = 2;  // human-readable label, e.g. "Spazieren gehen"
-  int64            fire_at   = 3;  // Unix timestamp (seconds) when to fire
-  string           room      = 4;  // room to announce in, or "all"
-  optional string  roomie_id = 5;  // optional: which user set the timer
+  string              timer_id = 1;  // UUID assigned by Hannah
+  string              label    = 2;  // human-readable label, e.g. "Spazieren gehen"
+  int64               fire_at  = 3;  // Unix timestamp (seconds) when to fire
+  reserved 4, 5;
+  reserved "room", "roomie_id";
+  map<string, string> metadata = 6;  // opaque to the Timer Service — e.g. "room", "roomie_id", "trigger_id"
 }
 
 // Hannah instructs the timer service to cancel a timer.
@@ -60,10 +61,10 @@ message TimerAck {
 }
 
 // Timer Service notifies Hannah that a timer has expired.
-// Hannah looks up the timer_id in its own store to determine what to announce and where.
 message TimerFired {
-  string timer_id = 1;
-  string label    = 2;  // convenience copy for logging; Hannah has it in its own store
+  string              timer_id = 1;
+  string              label    = 2;  // convenience copy for logging
+  map<string, string> metadata = 3;  // echoed verbatim from TimerCreate
 }
 
 // Response to TimerListRequest — used for sync and "welche Timer habe ich?" queries.
@@ -72,9 +73,10 @@ message TimerListResponse {
 }
 
 message TimerInfo {
-  string           timer_id  = 1;
-  string           label     = 2;
-  int64            fire_at   = 3;  // Unix timestamp (seconds)
-  string           room      = 4;
-  optional string  roomie_id = 5;
+  string              timer_id = 1;
+  string              label    = 2;
+  int64               fire_at  = 3;  // Unix timestamp (seconds)
+  reserved 4, 5;
+  reserved "room", "roomie_id";
+  map<string, string> metadata = 6;
 }

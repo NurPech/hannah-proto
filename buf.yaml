@@ -1,0 +1,15 @@
+version: v2
+modules:
+  - path: .
+lint:
+  use:
+    - BASIC
+  except:
+    # All protos live flat at repo root (package "hannah"), not under a
+    # matching hannah/ subdirectory. Changing that means every consumer
+    # (Python/Go/TypeScript) has to update its proto include path — tracked
+    # as a separate, coordinated change rather than bundled into linting.
+    - PACKAGE_DIRECTORY_MATCH
+breaking:
+  use:
+    - FILE
