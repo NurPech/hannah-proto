@@ -1,0 +1,22 @@
+{
+  "name": "@m1kad0/hannah-proto",
+  "version": "0.0.0",
+  "description": "Generated TypeScript types for the Hannah voice assistant proto schema",
+  "license": "UNLICENSED",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "buf": "sh scripts/generate.sh",
+    "build": "npm run buf && tsc"
+  },
+  "devDependencies": {
+    "ts-proto": "^2.12.0",
+    "typescript": "^5.6.0"
+  }
+}

@@ -7,7 +7,11 @@
 
 
 
+
 ## **WORK IN PROGRESS**
+
+## 0.3.3
+* Added: CI publishes generated TypeScript types to the public npm registry (`@m1kad0/hannah-proto`) on tag — pilot for TS/npm consumers, third distribution channel alongside PyPI and Go. `ts-proto` emits types only (no service/client code); the codegen itself lives in `npm/scripts/generate.sh` (`npm run buf` / `npm run build`) rather than inline in CI
 
 ## 0.3.2
 * Added: `publish:go` now also generates `version.go` (`hannahproto.ProtoVersion`), matching `hannah_proto.PROTO_VERSION` on the PyPI side — the Go module was published without any way to read `PROTO_VERSION` at runtime
