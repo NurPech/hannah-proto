@@ -11,7 +11,11 @@
 
 
 
+
 ## **WORK IN PROGRESS**
+
+## 0.3.7
+* Added: `GetTimers`/`DeleteTimer` RPCs (`timer_admin.proto`) — query and cancel a user's active timers independent of the `TimerConnect` stream, e.g. for an Admin-UI or Telegram bot
 
 ## 0.3.6
 * Fixed: `@m1kad0/hannah-proto`'s npm package was missing `@bufbuild/protobuf` as a real dependency — the generated `@grpc/grpc-js` service/client code needs it at runtime for wire encode/decode, but it was only ever present transitively as a `ts-proto` dev dependency, so a plain `npm install @m1kad0/hannah-proto` left consumers with `Error: Cannot find module '@bufbuild/protobuf/wire'` at runtime (not caught by `tsc --noEmit` on the consumer side)

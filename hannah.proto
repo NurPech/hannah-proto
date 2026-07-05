@@ -16,6 +16,7 @@ import "speaker_enrollment.proto";
 import "agent.proto";
 import "wakeword_capture.proto";
 import "timer_service.proto";
+import "timer_admin.proto";
 
 // ============================================================
 //  Hannah gRPC Service
@@ -173,6 +174,12 @@ service HannahService {
   // The Timer Service initiates the connection; if Hannah restarts, the service reconnects.
   // Hannah sends timer commands (create, cancel, list); the service fires events when timers expire.
   rpc TimerConnect (stream TimerMessage) returns (stream TimerCommand);
+
+  // --- Timer Admin ---
+  // Query and cancel timers independent of the TimerConnect stream — e.g. for an
+  // Admin-UI or Telegram bot listing/cancelling a user's active timers.
+  rpc GetTimers    (GetTimersRequest)    returns (GetTimersResponse);
+  rpc DeleteTimer  (DeleteTimerRequest)  returns (StatusResponse);
 
   // --- ioBroker Agent ---
   // Single bidirectional stream between the HannahAgent ioBroker adapter and Hannah Core.

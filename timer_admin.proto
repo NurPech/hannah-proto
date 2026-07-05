@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+package hannah;
+
+option go_package = "github.com/NurPech/hannah-proto-go;hannahproto";
+
+// --- Timer Admin ---
+// Query and manage timers independent of the TimerConnect stream (see timer_service.proto) —
+// e.g. for an Admin-UI or Telegram bot listing/cancelling a user's active timers.
+
+message Timer {
+  string timer_id = 1;
+  string label    = 2;
+  int64  seconds  = 3;  // remaining seconds until fire, computed relative to now
+  string room_id  = 4;
+  int32  user_id  = 5;
+}
+
+message GetTimersRequest {
+  int32 user_id = 1;
+}
+
+message GetTimersResponse {
+  repeated Timer timers = 1;
+}
+
+message DeleteTimerRequest {
+  string timer_id     = 1;
+  int32  requestor_id = 2;  // caller performing the deletion, may differ from the timer's owner
+}
