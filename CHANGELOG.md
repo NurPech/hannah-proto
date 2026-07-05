@@ -9,7 +9,11 @@
 
 
 
+
 ## **WORK IN PROGRESS**
+
+## 0.3.5
+* Fixed: `hannah_proto`'s `__init__.py` now re-exports every scope-split module's messages/enums onto `hannah_pb2` (dynamically discovered via `pkgutil`, not a hardcoded list) — without this, `hannah_pb2.EventFilter` and every other message defined outside `hannah.proto` itself raised `AttributeError` for any consumer expecting the pre-split, single-module behavior. Same fix `core`/`telegram` in the `hannah` monorepo already carry locally; this makes it unnecessary for future Python consumers of this package
 
 ## 0.3.4
 * Changed: `@m1kad0/hannah-proto` now generates real `@grpc/grpc-js`-compatible service clients (`ts-proto` `outputServices=grpc-js`, `forceLong=bigint`) instead of bare message types — usable as a drop-in for consumers currently doing dynamic `@grpc/proto-loader` loading. `@grpc/grpc-js` is a peerDependency. Also excludes `npm/node_modules` from `buf`'s module scan, since installing `@grpc/grpc-js`/`protobufjs` pulls in their own vendored `.proto` files that `buf` was otherwise picking up and failing to build
