@@ -10,7 +10,11 @@
 
 
 
+
 ## **WORK IN PROGRESS**
+
+## 0.3.6
+* Fixed: `@m1kad0/hannah-proto`'s npm package was missing `@bufbuild/protobuf` as a real dependency — the generated `@grpc/grpc-js` service/client code needs it at runtime for wire encode/decode, but it was only ever present transitively as a `ts-proto` dev dependency, so a plain `npm install @m1kad0/hannah-proto` left consumers with `Error: Cannot find module '@bufbuild/protobuf/wire'` at runtime (not caught by `tsc --noEmit` on the consumer side)
 
 ## 0.3.5
 * Fixed: `hannah_proto`'s `__init__.py` now re-exports every scope-split module's messages/enums onto `hannah_pb2` (dynamically discovered via `pkgutil`, not a hardcoded list) — without this, `hannah_pb2.EventFilter` and every other message defined outside `hannah.proto` itself raised `AttributeError` for any consumer expecting the pre-split, single-module behavior. Same fix `core`/`telegram` in the `hannah` monorepo already carry locally; this makes it unnecessary for future Python consumers of this package

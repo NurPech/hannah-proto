@@ -15,6 +15,9 @@
     "buf": "sh scripts/generate.sh",
     "build": "npm run buf && tsc"
   },
+  "dependencies": {
+    "@bufbuild/protobuf": "^2.12.1"
+  },
   "peerDependencies": {
     "@grpc/grpc-js": "^1.10.0"
   },
