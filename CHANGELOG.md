@@ -13,7 +13,11 @@
 
 
 
+
 ## **WORK IN PROGRESS**
+
+## 0.3.9
+* Fixed: `python/pyproject.toml`'s `grpcio`/`protobuf` dependency floors (`>=1.60`/`>=4.25`) were far looser than what the actually-generated gencode requires — a plain `pip install hannah-proto` could resolve a runtime too old to import the package at all (`VersionError`/`RuntimeError` at import time). Raised to `grpcio>=1.82.1`/`protobuf>=7.35.0` to match 0.3.8's gencode; still needs bumping by hand alongside any future CI toolchain upgrade that changes the generated version markers
 
 ## 0.3.8
 * Added: `User.enabled_automations`, `SetAutomation` RPC (`user_registry.proto`) and `AutomationConnect` bidirectional stream (`automation.proto`) — lets an external automation service (e.g. `telegram_autoresponder`) register itself, receive a snapshot of users with it currently enabled, and get live updates, without depending on the generic `SubscribeEvents` bus

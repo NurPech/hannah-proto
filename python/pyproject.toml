@@ -8,8 +8,13 @@ version = "0.0.0"
 description = "Generated Python gRPC stubs for the Hannah voice assistant proto schema"
 requires-python = ">=3.9"
 dependencies = [
-    "grpcio>=1.60",
-    "protobuf>=4.25",
+    # Floors must cover whatever grpcio-tools/protoc version actually generated the
+    # current gencode — the generated _pb2.py/_pb2_grpc.py hard-fail at import time if
+    # the installed runtime is older than what they were compiled against. Bump these
+    # alongside any CI toolchain upgrade that changes the generated version markers,
+    # not just when the API surface changes.
+    "grpcio>=1.82.1",
+    "protobuf>=7.35.0",
 ]
 
 [tool.setuptools.packages.find]
