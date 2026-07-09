@@ -17,6 +17,7 @@ import "agent.proto";
 import "wakeword_capture.proto";
 import "timer_service.proto";
 import "timer_admin.proto";
+import "automation.proto";
 
 // ============================================================
 //  Hannah gRPC Service
@@ -40,6 +41,9 @@ service HannahService {
   rpc UnlinkAccount (UnlinkAccountRequest) returns (StatusResponse);
   rpc SetTrustLevel       (SetTrustLevelRequest)       returns (StatusResponse);
   rpc SetSystemMessages   (SetSystemMessagesRequest)   returns (StatusResponse);
+  // Enable/disable an automation service (e.g. "telegram_autoresponder") for a user.
+  // Pushes a live update to any connected AutomationConnect stream registered for it.
+  rpc SetAutomation       (SetAutomationRequest)       returns (StatusResponse);
   rpc Login               (LoginRequest)               returns (UserResponse);
 
   // --- User-Verwaltung (Admin-UI, #27 Phase 6) ---
@@ -187,4 +191,13 @@ service HannahService {
   // Hannah pushes device-control commands and on-demand state-subscription requests back.
   // The adapter initiates the connection; if Hannah restarts, the adapter reconnects.
   rpc AgentConnect (stream AgentMessage) returns (stream AgentCommand);
+
+  // --- Automations ---
+  // Bidirectional stream for external automation services (e.g. telegram_autoresponder).
+  // The service sends an AutomationRegister identifying itself, then Hannah replies with
+  // an AutomationSnapshot (all users with it currently enabled) followed by live
+  // AutomationStateChanged deltas as users toggle it via SetAutomation/voice.
+  // Chosen over SubscribeEvents so a reconnecting service always gets a fresh snapshot
+  // instead of missing state changes that happened while it was offline.
+  rpc AutomationConnect (stream AutomationMessage) returns (stream AutomationCommand);
 }

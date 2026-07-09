@@ -1,0 +1,38 @@
+syntax = "proto3";
+
+package hannah;
+
+option go_package = "github.com/NurPech/hannah-proto-go;hannahproto";
+
+// Sent by an automation service (e.g. telegram_autoresponder) over the AutomationConnect stream.
+message AutomationMessage {
+  oneof payload {
+    AutomationRegister register = 1;  // sent once, right after connecting
+  }
+}
+
+// Identifies which automation this connection represents.
+message AutomationRegister {
+  string automation = 1;  // e.g. "telegram_autoresponder"
+}
+
+// Sent by Hannah Core over the AutomationConnect stream.
+message AutomationCommand {
+  oneof command {
+    AutomationSnapshot      snapshot      = 1;  // sent once, right after register
+    AutomationStateChanged  state_changed = 2;  // live delta
+  }
+}
+
+// Full list of users with the registered automation currently enabled.
+// Sent once per connection, right after AutomationRegister — the recovery
+// mechanism for state changes that happened while the service was offline.
+message AutomationSnapshot {
+  repeated int32 user_ids = 1;
+}
+
+// A single user's enabled/disabled state changed for the registered automation.
+message AutomationStateChanged {
+  int32 user_id = 1;
+  bool  enabled = 2;
+}

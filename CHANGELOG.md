@@ -12,7 +12,11 @@
 
 
 
+
 ## **WORK IN PROGRESS**
+
+## 0.3.8
+* Added: `User.enabled_automations`, `SetAutomation` RPC (`user_registry.proto`) and `AutomationConnect` bidirectional stream (`automation.proto`) — lets an external automation service (e.g. `telegram_autoresponder`) register itself, receive a snapshot of users with it currently enabled, and get live updates, without depending on the generic `SubscribeEvents` bus
 
 ## 0.3.7
 * Added: `GetTimers`/`DeleteTimer` RPCs (`timer_admin.proto`) — query and cancel a user's active timers independent of the `TimerConnect` stream, e.g. for an Admin-UI or Telegram bot

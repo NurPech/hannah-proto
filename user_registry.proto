@@ -17,6 +17,9 @@ message User {
   bool   system_messages = 7;  // receives ioBroker/system notifications via Telegram
   string email           = 8;  // #27 Phase 6
   string type            = 9;  // "roomie" | "guest" | "pet", #27 Phase 6
+  // Keys of automation services (e.g. "telegram_autoresponder") currently enabled for
+  // this user. Presence-based: a key is only listed here when enabled, absent = disabled.
+  repeated string enabled_automations = 10;
 }
 
 message GetUsersRequest {
@@ -81,6 +84,12 @@ message SetSystemMessagesRequest {
   // and unambiguous, unlike roomie_id which can collide across resident types.
   int32  user_id  = 1;
   bool   enabled  = 2;
+}
+
+message SetAutomationRequest {
+  int32  user_id     = 1;
+  string automation  = 2;  // e.g. "telegram_autoresponder"
+  bool   enabled     = 3;
 }
 
 // --- User-Verwaltung (Admin-UI, #27 Phase 6) ---
