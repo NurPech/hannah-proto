@@ -2,6 +2,8 @@ syntax = "proto3";
 
 package hannah;
 
+import "shared.proto";
+
 option go_package = "github.com/NurPech/hannah-proto-go;hannahproto";
 
 // Sent by the HannahAgent ioBroker adapter over the AgentConnect stream.
@@ -166,6 +168,8 @@ message AgentDevice {
     repeated string functions = 6;
     AgentStateValue value     = 7;
     map<string, string> room_names = 8;  // all display names from ioBroker enum, e.g. {"de": "Wohnzimmer", "en": "Living Room"}
+    StateType state_type      = 9;   // derived from ioBroker's common.type/role/states
+    EnumValues enum_values    = 10;  // only set when state_type is ENUM or COLOR
 }
 
 // a list with all known devices from the ioBroker adapter

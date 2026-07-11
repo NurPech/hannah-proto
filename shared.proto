@@ -10,3 +10,20 @@ message StatusResponse {
   bool   ok      = 1;
   string message = 2;
 }
+
+// Classification of an ioBroker state's value, derived from common.type/role/states.
+// Lets consumers (e.g. the WebUI trigger editor) offer the right operators/input widget
+// per state instead of requiring a free-text ioBroker state ID.
+enum StateType {
+  STATE_TYPE_UNSPECIFIED = 0;
+  BOOLEAN                = 1;
+  NUMERIC                = 2;
+  ENUM                   = 3;
+  COLOR                  = 4;
+  TEXT                   = 5;
+}
+
+// Allowed values for an ENUM/COLOR state, e.g. from ioBroker's common.states.
+message EnumValues {
+  map<string, string> values = 1;  // raw value -> display label
+}

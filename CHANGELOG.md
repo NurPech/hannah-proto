@@ -6,15 +6,10 @@
 
 
 
-
-
-
-
-
-
-
-
 ## **WORK IN PROGRESS**
+
+## 0.4.0
+* Added: `StateType` enum + `EnumValues` message (`shared.proto`) — classifies an ioBroker state's value (`BOOLEAN`/`NUMERIC`/`ENUM`/`COLOR`/`TEXT`) so consumers can offer the right operators/input widget instead of a free-text state ID. Wired into `AgentDevice` (`agent.proto`, adapter → Core) and `DeviceInfo` (`device_control_menu.proto`, `GetDevices` response) as `state_type`/`enum_values` resp. `state_types`/`state_enum_values` maps. Prep for `hannah#117` / `hannah-webui#16`'s trigger editor
 
 ## 0.3.9
 * Fixed: `python/pyproject.toml`'s `grpcio`/`protobuf` dependency floors (`>=1.60`/`>=4.25`) were far looser than what the actually-generated gencode requires — a plain `pip install hannah-proto` could resolve a runtime too old to import the package at all (`VersionError`/`RuntimeError` at import time). Raised to `grpcio>=1.82.1`/`protobuf>=7.35.0` to match 0.3.8's gencode; still needs bumping by hand alongside any future CI toolchain upgrade that changes the generated version markers
