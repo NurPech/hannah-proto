@@ -5,7 +5,11 @@
 -->
 
 
+
 ## **WORK IN PROGRESS**
+
+## 0.5.1
+* Fixed: `publish:go` embedded a stale `ProtoVersion` (`2` instead of the actual `3`) into the generated Go module's `version.go` for the 0.5.0 release — caused Go consumers (e.g. `hannah-proxy`) to fail Hannah Core's protocol-version check after upgrading
 
 ## 0.5.0
 * **Breaking**: Removed `GetRoutines`/`CreateRoutine`/`UpdateRoutine`/`DeleteRoutine` RPCs and their messages (`Routine`, `GetRoutinesResponse`, `CreateRoutineRequest`, `CreateRoutineResponse`, `UpdateRoutineRequest`, `DeleteRoutineRequest`) from `control.proto` — Hannah Core retired the standalone "Routines" concept in favor of a `when.phrase` Trigger condition (`hannah#139`) and no longer implements these RPCs. Consumers still calling them (e.g. the WebUI routine editor) need their own follow-up before upgrading to this version.
