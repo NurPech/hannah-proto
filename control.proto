@@ -122,7 +122,7 @@ message SetGroupRoomsRequest {
   repeated string room_ids = 2;
 }
 
-// --- Routines/Triggers (Admin-UI, #27 Phase 4) ---
+// --- Triggers (Admin-UI, #28) ---
 //
 // `actions`/`when`/`cancel_when`/`on_response` stay JSON-encoded strings rather than
 // structured messages: `actions` is a union of two shapes ({say,room} or {topic,value},
@@ -130,43 +130,6 @@ message SetGroupRoomsRequest {
 // `on_response`) is deliberately open-ended (also/unless/time/days/condition strings,
 // see trigger_engine.py's module docstring) - modeling it as proto would force a schema
 // change on every new condition kind. Kept consistent with LinkedAccount.provider_payload.
-
-message Routine {
-  int32  id                = 1;
-  string name              = 2;
-  repeated string triggers = 3;
-  string actions_json      = 4;  // JSON list[{topic,value} | {say,room}]
-  string reply             = 5;
-}
-
-message GetRoutinesResponse {
-  repeated Routine routines = 1;
-}
-
-message CreateRoutineRequest {
-  string name              = 1;
-  repeated string triggers = 2;
-  string actions_json      = 3;
-  string reply             = 4;
-}
-
-message CreateRoutineResponse {
-  bool   ok      = 1;
-  int32  id      = 2;  // server-assigned, only valid when ok == true
-  string message = 3;
-}
-
-message UpdateRoutineRequest {
-  int32  id                = 1;
-  string name              = 2;
-  repeated string triggers = 3;
-  string actions_json      = 4;
-  string reply             = 5;
-}
-
-message DeleteRoutineRequest {
-  int32 id = 1;
-}
 
 message Trigger {
   string id               = 1;  // client-assigned slug, e.g. "aussentuer_abend"

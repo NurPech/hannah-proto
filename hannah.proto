@@ -88,11 +88,7 @@ service HannahService {
   rpc DeleteGroup   (DeleteGroupRequest)   returns (StatusResponse);
   rpc SetGroupRooms (SetGroupRoomsRequest) returns (StatusResponse);
 
-  // --- Routines/Triggers (Admin-UI, #27 Phase 4) ---
-  rpc GetRoutines   (Empty)                returns (GetRoutinesResponse);
-  rpc CreateRoutine (CreateRoutineRequest) returns (CreateRoutineResponse);
-  rpc UpdateRoutine (UpdateRoutineRequest) returns (StatusResponse);
-  rpc DeleteRoutine (DeleteRoutineRequest) returns (StatusResponse);
+  // --- Triggers (Admin-UI, #28) ---
   rpc GetTriggers   (Empty)                returns (GetTriggersResponse);
   rpc CreateTrigger (CreateTriggerRequest) returns (StatusResponse);
   rpc UpdateTrigger (UpdateTriggerRequest) returns (StatusResponse);

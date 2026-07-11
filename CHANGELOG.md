@@ -5,8 +5,10 @@
 -->
 
 
-
 ## **WORK IN PROGRESS**
+
+## 0.5.0
+* **Breaking**: Removed `GetRoutines`/`CreateRoutine`/`UpdateRoutine`/`DeleteRoutine` RPCs and their messages (`Routine`, `GetRoutinesResponse`, `CreateRoutineRequest`, `CreateRoutineResponse`, `UpdateRoutineRequest`, `DeleteRoutineRequest`) from `control.proto` — Hannah Core retired the standalone "Routines" concept in favor of a `when.phrase` Trigger condition (`hannah#139`) and no longer implements these RPCs. Consumers still calling them (e.g. the WebUI routine editor) need their own follow-up before upgrading to this version.
 
 ## 0.4.0
 * Added: `StateType` enum + `EnumValues` message (`shared.proto`) — classifies an ioBroker state's value (`BOOLEAN`/`NUMERIC`/`ENUM`/`COLOR`/`TEXT`) so consumers can offer the right operators/input widget instead of a free-text state ID. Wired into `AgentDevice` (`agent.proto`, adapter → Core) and `DeviceInfo` (`device_control_menu.proto`, `GetDevices` response) as `state_type`/`enum_values` resp. `state_types`/`state_enum_values` maps. Prep for `hannah#117` / `hannah-webui#16`'s trigger editor
