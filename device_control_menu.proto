@@ -14,6 +14,7 @@ message DeviceInfo {
   map<string, string> current = 5;  // current values as strings, e.g. {"on": "true", "level": "75"}
   map<string, StateType>  state_types       = 6;  // canon-key -> type, e.g. {"on": BOOLEAN, "level": NUMERIC}
   map<string, EnumValues> state_enum_values = 7;  // canon-key -> allowed values, only present for ENUM/COLOR states
+  map<string, bool> state_writable = 8; // canon-key -> writable
 }
 
 message RoomInfo {

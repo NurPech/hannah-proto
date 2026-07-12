@@ -5,8 +5,11 @@
 -->
 
 
-
 ## **WORK IN PROGRESS**
+
+## 0.5.2
+* Added: `AgentDevice.writable` (`agent.proto`) / `DeviceInfo.state_writable` (`device_control_menu.proto`) — marks whether a device state is writable (from ioBroker's `common.write`), so consumers (e.g. the WebUI) can exclude read-only states (sensors, etc.) from control actions. `hannah-proto#4`, consumed by `hannah#144` (Core) / `ioBroker.hannah#114` (adapter)
+* Changed: CI now uses the shared `test-changelog` component from `hannah-components` instead of an inline job — same discipline, now covers any source change rather than the previous fixed file-pattern
 
 ## 0.5.1
 * Fixed: `publish:go` embedded a stale `ProtoVersion` (`2` instead of the actual `3`) into the generated Go module's `version.go` for the 0.5.0 release — caused Go consumers (e.g. `hannah-proxy`) to fail Hannah Core's protocol-version check after upgrading

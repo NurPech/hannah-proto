@@ -170,6 +170,7 @@ message AgentDevice {
     map<string, string> room_names = 8;  // all display names from ioBroker enum, e.g. {"de": "Wohnzimmer", "en": "Living Room"}
     StateType state_type      = 9;   // derived from ioBroker's common.type/role/states
     EnumValues enum_values    = 10;  // only set when state_type is ENUM or COLOR
+    bool writable = 11; // derived from ioBroker's common.write
 }
 
 // a list with all known devices from the ioBroker adapter
