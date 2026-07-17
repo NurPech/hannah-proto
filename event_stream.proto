@@ -30,6 +30,8 @@ message SystemNotificationEvent {
 message FirmwareEventProto {
   string device  = 1;
   string version = 2;
+  bool update_available = 3;
+  optional string new_version   = 4;
 }
 
 message TriggerFirmwareUpdateRequest {

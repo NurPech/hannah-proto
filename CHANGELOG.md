@@ -5,7 +5,11 @@
 -->
 
 
+
 ## **WORK IN PROGRESS**
+
+## 0.5.3
+* Added: `Satellite.firmware_version`/`update_available`/`new_version` (`control.proto`) — `GetSatellites` now exposes the current firmware state directly instead of requiring a client to wait for the next `satellite.firmware` event. `FirmwareEventProto` (`event_stream.proto`) gains the matching `update_available`/`new_version` fields, so `SubscribeEvents` carries the same information as the `AgentConnect` stream's `AgentFirmwareEvent`. `hannah-proto#5`, prep for `hannah#157` (Core: persist firmware version on the `Satellite` model instead of an in-memory dict)
 
 ## 0.5.2
 * Added: `AgentDevice.writable` (`agent.proto`) / `DeviceInfo.state_writable` (`device_control_menu.proto`) — marks whether a device state is writable (from ioBroker's `common.write`), so consumers (e.g. the WebUI) can exclude read-only states (sensors, etc.) from control actions. `hannah-proto#4`, consumed by `hannah#144` (Core) / `ioBroker.hannah#114` (adapter)

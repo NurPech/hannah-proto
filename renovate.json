@@ -4,6 +4,14 @@
     "config:best-practices",
     "mergeConfidence:all-badges"
   ],
+  "labels": [
+    "renovate"
+  ],
+  "assignees": [
+    "NurPech"
+  ],
+  "dependencyDashboard": true,
+  "osvVulnerabilityAlerts": true,
   "vulnerabilityAlerts": {
     "enabled": true,
     "labels": [
@@ -22,6 +30,25 @@
         "devDependencies"
       ],
       "commitMessagePrefix": "chore(dev-deps):"
+    },
+    {
+      "matchUpdateTypes": [
+        "patch",
+        "pin"
+      ],
+      "minimumReleaseAge": "3 days",
+      "automerge": true
+    },
+    {
+      "matchUpdateTypes": [
+        "digest"
+      ],
+      "matchManagers": [
+        "npm",
+        "gitlabci",
+        "gitlabci-include"
+      ],
+      "automerge": true
     }
   ]
 }

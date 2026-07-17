@@ -53,6 +53,9 @@ message Satellite {
   bool   room_mismatch        = 10; // true if connected and live room differs from room_id
   int32  owner_user_id        = 11; // Person (User) assigned as owner in Core DB, 0 = unassigned. #31
   string owner_display_name   = 12; // display name of owner_user_id, "" if unassigned
+  string firmware_version     = 13; // firmware_version of the satellite
+  bool update_available       = 14; // true if the device has a new firmware available
+  optional string new_version   = 15;
 }
 
 message GetSatellitesResponse {
