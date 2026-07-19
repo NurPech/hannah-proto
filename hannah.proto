@@ -77,6 +77,9 @@ service HannahService {
   rpc SetSatelliteDisplayName (SetSatelliteDisplayNameRequest) returns (StatusResponse);
   // Assign a satellite to a Person (User), independent of its room. #31
   rpc SetSatelliteOwner       (SetSatelliteOwnerRequest)       returns (StatusResponse);
+  // Toggle whether the satellite's mic reopens after a Smalltalk answer instead of
+  // waiting for wake-word/PTT again (silence-timeout lives in the satellite firmware). #158
+  rpc SetSatelliteSmalltalkFollowup (SetSatelliteSmalltalkFollowupRequest) returns (StatusResponse);
   // Delete existing satellite
   rpc DeleteSatellite (DeleteSatelliteRequest) returns (StatusResponse);
 
