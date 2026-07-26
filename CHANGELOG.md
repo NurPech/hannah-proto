@@ -8,7 +8,11 @@
 
 
 
+
 ## **WORK IN PROGRESS**
+
+## 0.5.6 (2026-07-26)
+* Fixed: `python/pyproject.toml`'s `grpcio` floor (`>=1.82.1`) was lower than what 0.5.5's actual gencode requires at import time (`>=1.83.0`) — same bug class as 0.3.9, this time caused by `.gitlab-ci.yml`'s `pip install grpcio-tools` being unpinned and picking up a newer `grpcio-tools` than the declared floor accounted for. `hannah#163`
 
 ## 0.5.5 (2026-07-26)
 * Added: `TriggerSatelliteRestart` RPC (`TriggerSatelliteRestartRequest`, `event_stream.proto`) — remote-restart command for a satellite over MQTT, alongside the existing `TriggerFirmwareUpdate`. Diagnostic/rejuvenation tool for the resource-exhaustion suspicion in `hannah#150`, prep for `hannah#161`

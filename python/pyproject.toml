@@ -14,7 +14,7 @@ dependencies = [
     # the installed runtime is older than what they were compiled against. Bump these
     # alongside any CI toolchain upgrade that changes the generated version markers,
     # not just when the API surface changes.
-    "grpcio>=1.82.1",
+    "grpcio>=1.83.0",
     "protobuf>=7.35.0",
 ]
 
