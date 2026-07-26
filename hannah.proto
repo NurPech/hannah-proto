@@ -137,6 +137,11 @@ service HannahService {
   // --- Firmware Manager ---
   // Trigger an immediate OTA update for a satellite (bypasses residents check).
   rpc TriggerFirmwareUpdate (TriggerFirmwareUpdateRequest) returns (StatusResponse);
+  // Trigger an ordered remote restart (esp_restart()) of a satellite over MQTT.
+  // Diagnostic/rejuvenation tool for suspected resource exhaustion (heap fragmentation
+  // after long uptime) — works even when the satellite's OTA/webserver no longer
+  // respond, since MQTT stays alive in that failure mode.
+  rpc TriggerSatelliteRestart (TriggerSatelliteRestartRequest) returns (StatusResponse);
 
   // --- Wakeword Capture ---
   // Put a satellite in audio-capture mode for wakeword training data collection.

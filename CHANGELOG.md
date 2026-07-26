@@ -7,7 +7,11 @@
 
 
 
+
 ## **WORK IN PROGRESS**
+
+## 0.5.5 (2026-07-26)
+* Added: `TriggerSatelliteRestart` RPC (`TriggerSatelliteRestartRequest`, `event_stream.proto`) — remote-restart command for a satellite over MQTT, alongside the existing `TriggerFirmwareUpdate`. Diagnostic/rejuvenation tool for the resource-exhaustion suspicion in `hannah#150`, prep for `hannah#161`
 
 ## 0.5.4 (2026-07-19)
 * Added: root `README.md`, now published alongside the generated stubs on all three distribution channels — PyPI long description (`python/pyproject.toml`'s new `readme` field), the npm package page, and the public `hannah-proto-go` GitHub repo

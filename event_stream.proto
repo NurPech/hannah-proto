@@ -38,6 +38,10 @@ message TriggerFirmwareUpdateRequest {
   string device = 1;
 }
 
+message TriggerSatelliteRestartRequest {
+  string device = 1;
+}
+
 message ResidentEventProto {
   string roomie_id    = 1;
   string display_name = 2;
