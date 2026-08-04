@@ -5,11 +5,10 @@
 -->
 
 
-
-
-
-
 ## **WORK IN PROGRESS**
+
+## 1.0.0 (2026-08-04)
+* **Breaking**: `AgentResident.name`/`presence_state` (`agent.proto`) changed from implicit-presence to explicit-presence (`optional string`/`optional int32`) — lets the adapter distinguish "empty"/`0` from "not sent/unknown yet" instead of collapsing both to the zero value. `buf breaking` flags the cardinality change as incompatible; acknowledged via the `PROTO_VERSION` bump (3 -> 4)
 
 ## 0.5.6 (2026-07-26)
 * Fixed: `python/pyproject.toml`'s `grpcio` floor (`>=1.82.1`) was lower than what 0.5.5's actual gencode requires at import time (`>=1.83.0`) — same bug class as 0.3.9, this time caused by `.gitlab-ci.yml`'s `pip install grpcio-tools` being unpinned and picking up a newer `grpcio-tools` than the declared floor accounted for. `hannah#163`

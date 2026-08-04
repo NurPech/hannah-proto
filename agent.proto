@@ -195,10 +195,10 @@ message AgentRoomSnapshot {
 // A resident from the ioBroker adapter
 message AgentResident {
   string roomie_id          = 1;
-  string name               = 2;
+  optional string name               = 2;
   ResidentType type         = 3;
   optional int32 mood_level = 4;
-  int32 presence_state      = 5;
+  optional int32 presence_state = 5;
 }
 
 // a list with all known residents
