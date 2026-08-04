@@ -5,7 +5,11 @@
 -->
 
 
+
 ## **WORK IN PROGRESS**
+
+## 1.0.1 (2026-08-04)
+* Fixed: `publish:go` silently embedded a stale `ProtoVersion` into the generated Go module's `version.go` — happened for the 0.5.0 and 1.0.0 releases (both times the *previous* release's value, `2`/`3` instead of `3`/`4`). Go consumers pinning to `v1.0.0` get a `ProtoVersion` that doesn't match reality (tags are immutable, not retroactively fixable) — corrected forward in `v1.0.1`
 
 ## 1.0.0 (2026-08-04)
 * **Breaking**: `AgentResident.name`/`presence_state` (`agent.proto`) changed from implicit-presence to explicit-presence (`optional string`/`optional int32`) — lets the adapter distinguish "empty"/`0` from "not sent/unknown yet" instead of collapsing both to the zero value. `buf breaking` flags the cardinality change as incompatible; acknowledged via the `PROTO_VERSION` bump (3 -> 4)
