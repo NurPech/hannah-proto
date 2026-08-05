@@ -1,0 +1,45 @@
+syntax = "proto3";
+
+package hannah;
+
+option go_package = "github.com/NurPech/hannah-proto-go;hannahproto";
+
+// Current weather conditions, discovered by the ioBroker adapter from a configured
+// weather source and pushed via AgentMessage.weather_update. Field set is deliberately
+// narrow: only what core/hannah/weather.py's spoken answers actually use today, plus
+// humidity (cheap addition). Deliberately excluded from v1 (cheap to add later, not
+// currently used by any sentence): pressure, clouds, wind_gust, visibility, sunrise/sunset.
+message WeatherCurrentData {
+  float temperature = 1;                    // °C; role value.temperature
+  optional float humidity = 2;              // % relative humidity; role value.humidity
+  string condition_summary = 3;             // short label e.g. "Rain"; role weather.title
+  string condition_detail  = 4;             // longer description; role weather.state
+  optional float precipitation_mm = 5;      // role weather.precipitation.rain (fallback: weather.precipitation)
+  optional float wind_speed_ms = 6;         // role value.speed.wind
+  optional int32  wind_direction_deg  = 7;  // numeric variant of role value.direction.wind
+  optional string wind_direction_text = 8;  // string variant of the SAME role (disambiguate via common.type)
+  int64 observed_at = 9;                    // Unix timestamp of the source reading; role date (unit unverified live)
+}
+
+// One forecast day. day_offset 0=today .. 5=five days out, matching ioBroker's dayN
+// channel suffix. Only day-granularity — openweathermap's 3-hourly periodN states
+// (buggy role suffix weather.forecast.undefined) are explicitly out of scope.
+message WeatherForecastDay {
+  int32  day_offset = 1;
+  optional float temperature_min = 2;       // role value.temperature.min
+  optional float temperature_max = 3;       // role value.temperature.max
+  string condition_summary = 4;             // role weather.title
+  string condition_detail  = 5;             // role weather.state
+  optional float precipitation_mm = 6;      // role weather.precipitation.rain
+  optional float wind_speed_ms = 7;         // role value.speed.wind
+  optional string wind_direction_text = 8;  // role value.direction.wind (string variant)
+}
+
+// Sent by the ioBroker adapter whenever its configured weather source changes.
+// Full aggregated state, not a delta — Core replaces its cache wholesale on each message.
+// current is absent until at least one value resolved; forecast is empty in "custom"
+// mapping mode (current-conditions only, v1 scope).
+message AgentWeatherUpdate {
+  optional WeatherCurrentData current  = 1;
+  repeated WeatherForecastDay forecast = 2;
+}

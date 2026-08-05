@@ -3,6 +3,7 @@ syntax = "proto3";
 package hannah;
 
 import "shared.proto";
+import "weather.proto";
 
 option go_package = "github.com/NurPech/hannah-proto-go;hannahproto";
 
@@ -17,6 +18,7 @@ message AgentMessage {
     AgentResidentSnapshot send_residents    = 6;  // initial snapshot with all residents
     AgentAskResident      ask_resident      = 7;  // ask Resident via Hannah
     AgentRoomSnapshot     send_rooms        = 8;  // full room catalog, independent of devices
+    AgentWeatherUpdate    weather_update    = 9; 
   }
 }
 

@@ -4,10 +4,10 @@
     ## **WORK IN PROGRESS**
 -->
 
-
-
-
 ## **WORK IN PROGRESS**
+
+## 1.1.0 (2026-08-05)
+* Added: `weather.proto` (`WeatherCurrentData`, `WeatherForecastDay`, `AgentWeatherUpdate`) + `AgentMessage.weather_update` (`agent.proto`) — lets the ioBroker adapter push current conditions and a day-granularity forecast to Core. v1 scope is deliberately narrow (see field comments for what's excluded)
 
 ## 1.0.2 (2026-08-04)
 * Fixed: `publish:go` embedded a stale `ProtoVersion` into the generated Go module's `version.go` — happened for 0.5.0, 1.0.0, and 1.0.1. Root cause: `rsync`'s default quick-check compares file size and mtime, not content; a one-digit `ProtoVersion` bump produces a byte-identical file size, so `rsync` silently skipped copying the freshly-generated `version.go` into the target clone, leaving `git commit` with nothing to commit and the release tag pointing at the previous release's commit. `v1.0.0` and `v1.0.1`'s public Go module both stay wrong (tags are immutable) — corrected forward in the next release
