@@ -103,10 +103,20 @@ message GetRoomsResponse {
   repeated Room rooms = 1;
 }
 
+// GroupSatellite ist eine schlanke DTO-Projektion (device_id/display_name/room_id),
+// bewusst nicht die volle Satellite-Message: die trägt Live-Verbindungsstatus, den
+// GetGroups nicht braucht und der Server nicht ohne live verbundene Satelliten
+// befüllen kann. Analog zu Room{room_id, display_name} vor #56/hannah-proto#7.
+message GroupSatellite {
+  string device_id    = 1;
+  string display_name = 2;  // "" falls nicht provisioniert
+  string room_id      = 3;  // "" falls unzugewiesen — Anzeige-Kontext fürs Admin-UI
+}
+
 message Group {
   string group_id     = 1;
   string display_name = 2;
-  repeated Room rooms = 3;
+  repeated GroupSatellite satellites = 3;  // #56/hannah-proto#7: war "repeated Room rooms" — Gruppen referenzieren Satelliten direkt statt Räume
 }
 
 message GetGroupsResponse {
@@ -127,9 +137,9 @@ message DeleteGroupRequest {
   string group_id = 1;
 }
 
-message SetGroupRoomsRequest {
-  string group_id          = 1;
-  repeated string room_ids = 2;
+message SetGroupSatellitesRequest {
+  string group_id            = 1;
+  repeated string device_ids = 2;
 }
 
 // --- Triggers (Admin-UI, #28) ---

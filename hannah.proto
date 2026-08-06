@@ -89,7 +89,7 @@ service HannahService {
   rpc CreateGroup   (CreateGroupRequest)   returns (StatusResponse);
   rpc UpdateGroup   (UpdateGroupRequest)   returns (StatusResponse);
   rpc DeleteGroup   (DeleteGroupRequest)   returns (StatusResponse);
-  rpc SetGroupRooms (SetGroupRoomsRequest) returns (StatusResponse);
+  rpc SetGroupSatellites (SetGroupSatellitesRequest) returns (StatusResponse);
 
   // --- Triggers (Admin-UI, #28) ---
   rpc GetTriggers   (Empty)                returns (GetTriggersResponse);

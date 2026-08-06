@@ -4,7 +4,11 @@
     ## **WORK IN PROGRESS**
 -->
 
+
 ## **WORK IN PROGRESS**
+
+## 2.0.0 (2026-08-06)
+* **Breaking**: `Group.rooms` (`repeated Room`) → `Group.satellites` (`repeated GroupSatellite`, new message) in `control.proto` — groups now reference satellites (`device_id`) directly instead of rooms. `SetGroupRooms`/`SetGroupRoomsRequest` renamed to `SetGroupSatellites`/`SetGroupSatellitesRequest` (`device_ids` replaces `room_ids`). `buf breaking` flags the field type change as incompatible; acknowledged via the `PROTO_VERSION` bump (4 -> 5). `hannah-proto#7`, prep for `hannah#56`
 
 ## 1.1.0 (2026-08-05)
 * Added: `weather.proto` (`WeatherCurrentData`, `WeatherForecastDay`, `AgentWeatherUpdate`) + `AgentMessage.weather_update` (`agent.proto`) — lets the ioBroker adapter push current conditions and a day-granularity forecast to Core. v1 scope is deliberately narrow (see field comments for what's excluded)
