@@ -5,7 +5,11 @@
 -->
 
 
+
 ## **WORK IN PROGRESS**
+
+## 2.0.1 (2026-08-06)
+* Fixed: `publish:go`'s generated `go.mod` hardcoded the module path without a `/vN` major-version suffix — Go's Semantic Import Versioning requires that suffix from major version 2 onward, so `go get github.com/NurPech/hannah-proto-go@v2.0.0` fails outright. First major bump ever taken (0.5.6 -> 1.0.0 didn't need one), so it went unnoticed until now. `v2.0.0`'s public Go module stays broken (tag is immutable) — corrected forward in the next release
 
 ## 2.0.0 (2026-08-06)
 * **Breaking**: `Group.rooms` (`repeated Room`) → `Group.satellites` (`repeated GroupSatellite`, new message) in `control.proto` — groups now reference satellites (`device_id`) directly instead of rooms. `SetGroupRooms`/`SetGroupRoomsRequest` renamed to `SetGroupSatellites`/`SetGroupSatellitesRequest` (`device_ids` replaces `room_ids`). `buf breaking` flags the field type change as incompatible; acknowledged via the `PROTO_VERSION` bump (4 -> 5). `hannah-proto#7`, prep for `hannah#56`
