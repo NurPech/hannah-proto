@@ -129,6 +129,7 @@ message AgentSatelliteUpdate {
   reserved 7;
   reserved "serial";          // removed: device_id is the hardware serial since v0.34
   string display_name = 8;  // human-readable name from Core DB (empty = fall back to device_id)
+  optional bool  dnd    = 9;  // current do-not-disturb state; absent = no change
 }
 
 // Hannah Core deleted a satellite (RoomManager.delete_satellite()) — the adapter

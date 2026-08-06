@@ -6,7 +6,11 @@
 
 
 
+
 ## **WORK IN PROGRESS**
+
+## 2.1.0 (2026-08-06)
+* Added: `AgentSatelliteUpdate.dnd` (`agent.proto`) — lets Core report a satellite's current do-not-disturb state back to the adapter, closing the confirm loop that `mute`/`volume` already had (`hannah-proto#8`, prep for `hannah#56` follow-up)
 
 ## 2.0.1 (2026-08-06)
 * Fixed: `publish:go`'s generated `go.mod` hardcoded the module path without a `/vN` major-version suffix — Go's Semantic Import Versioning requires that suffix from major version 2 onward, so `go get github.com/NurPech/hannah-proto-go@v2.0.0` fails outright. First major bump ever taken (0.5.6 -> 1.0.0 didn't need one), so it went unnoticed until now. `v2.0.0`'s public Go module stays broken (tag is immutable) — corrected forward in the next release
