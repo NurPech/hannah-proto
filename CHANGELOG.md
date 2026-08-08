@@ -4,7 +4,11 @@
     ## **WORK IN PROGRESS**
 -->
 
+
 ## **WORK IN PROGRESS**
+
+## 3.2.0 (2026-08-08)
+* Added: `CompatVersionClientInterceptor` (`python/hannah_proto/interceptor/compat_interceptor.py`) — a ready-made `grpc.aio` client interceptor, matching what Go/TypeScript already got in 3.1.0. Previously Python only had `client_compat_version_metadata()`, a bare metadata-tuple helper that would have forced every async Python client to hand-roll its own interceptor plumbing around it (`hannah-proto#10`, prep for Telegram's `hannah#217` adoption)
 
 ## 3.1.0 (2026-08-08)
 * Added: `compat_version`-aware interceptor helpers for Python, Go, and TypeScript (`python/hannah_proto/interceptor/`, `go/interceptor/`, `npm/interceptor/`) — derive the actual required version for a given RPC call from the request/response message types it uses, instead of gating on the repo-wide `PROTO_VERSION`. Go and TypeScript needed build/CI changes to ship hand-written source alongside generated code (`.gitlab-ci.yml`'s `publish:go`, `npm/scripts/generate.sh`); TypeScript additionally generates a build-time `compat_versions.ts` map from `buf build`'s JSON descriptor output, since ts-proto (no `outputSchema`) exposes no option/descriptor data at runtime. Step 4 of `hannah-proto#9` — consumption in Hannah Core is `hannah#217`

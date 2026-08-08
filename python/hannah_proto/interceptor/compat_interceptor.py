@@ -27,10 +27,12 @@ stay in the runtime check path at all. It can keep existing purely for
 """
 from __future__ import annotations
 
+import collections
 import logging
 from typing import Dict, Tuple
 
 import grpc
+import grpc.aio
 from google.protobuf.descriptor import Descriptor, MethodDescriptor, ServiceDescriptor
 
 from .. import options_pb2  # generated from options.proto — verify this is the actual generated module/attribute name once codegen runs
@@ -123,6 +125,68 @@ def client_compat_version_metadata(service: ServiceDescriptor, method_name: str)
         f"/{service.full_name}/{method_name}", DEFAULT_COMPAT_VERSION
     )
     return (COMPAT_VERSION_METADATA_KEY, str(required))
+
+
+class _ClientCallDetails(
+    collections.namedtuple(
+        "_ClientCallDetails",
+        ("method", "timeout", "metadata", "credentials", "wait_for_ready"),
+    ),
+    grpc.aio.ClientCallDetails,
+):
+    pass
+
+
+def _add_compat_version_metadata(client_call_details, value: str) -> _ClientCallDetails:
+    metadata = list(client_call_details.metadata or [])
+    metadata.append((COMPAT_VERSION_METADATA_KEY, value))
+    return _ClientCallDetails(
+        client_call_details.method,
+        client_call_details.timeout,
+        metadata,
+        client_call_details.credentials,
+        client_call_details.wait_for_ready,
+    )
+
+
+class CompatVersionClientInterceptor(
+    grpc.aio.UnaryUnaryClientInterceptor,
+    grpc.aio.UnaryStreamClientInterceptor,
+    grpc.aio.StreamUnaryClientInterceptor,
+    grpc.aio.StreamStreamClientInterceptor,
+):
+    """Ready-made grpc.aio client interceptor — attaches x-compat-version to
+    every outgoing call, derived from the invoked method's request/response
+    types (same map `CompatVersionInterceptor` builds server-side). Mirrors
+    the shape of a plain `ProtocolVersionClientInterceptor`
+    (x-proto-version) so an existing async Python client (e.g. Telegram)
+    can adopt this the same way, without hand-rolling its own descriptor
+    lookup — that's the reason this exists as a class here instead of
+    leaving `client_compat_version_metadata` as the only option (see
+    hannah-proto#10).
+    """
+
+    def __init__(self, service: ServiceDescriptor):
+        self._required = build_required_versions(service)
+
+    def _value_for(self, method: str) -> str:
+        return str(self._required.get(method, DEFAULT_COMPAT_VERSION))
+
+    async def intercept_unary_unary(self, continuation, client_call_details, request):
+        value = self._value_for(client_call_details.method)
+        return await continuation(_add_compat_version_metadata(client_call_details, value), request)
+
+    async def intercept_unary_stream(self, continuation, client_call_details, request):
+        value = self._value_for(client_call_details.method)
+        return await continuation(_add_compat_version_metadata(client_call_details, value), request)
+
+    async def intercept_stream_unary(self, continuation, client_call_details, request_iterator):
+        value = self._value_for(client_call_details.method)
+        return await continuation(_add_compat_version_metadata(client_call_details, value), request_iterator)
+
+    async def intercept_stream_stream(self, continuation, client_call_details, request_iterator):
+        value = self._value_for(client_call_details.method)
+        return await continuation(_add_compat_version_metadata(client_call_details, value), request_iterator)
 
 
 def _make_abort_handler(handler: "grpc.RpcMethodHandler", message: str) -> "grpc.RpcMethodHandler":
