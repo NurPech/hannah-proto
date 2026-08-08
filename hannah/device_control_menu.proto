@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package hannah;
 
-import "shared.proto";
+import "hannah/shared.proto";
 
 option go_package = "github.com/NurPech/hannah-proto-go;hannahproto";
 

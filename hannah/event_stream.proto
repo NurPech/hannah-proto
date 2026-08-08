@@ -4,7 +4,7 @@ package hannah;
 
 option go_package = "github.com/NurPech/hannah-proto-go;hannahproto";
 
-import "car_state.proto";
+import "hannah/car_state.proto";
 
 message EventFilter {
   // If empty, subscribe to all event types.

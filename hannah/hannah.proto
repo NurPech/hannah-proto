@@ -4,20 +4,21 @@ package hannah;
 
 option go_package = "github.com/NurPech/hannah-proto-go;hannahproto";
 
-import "shared.proto";
-import "user_registry.proto";
-import "control.proto";
-import "car_state.proto";
-import "event_stream.proto";
-import "satellite_proxy.proto";
-import "device_control_menu.proto";
-import "satellite_provisioning.proto";
-import "speaker_enrollment.proto";
-import "agent.proto";
-import "wakeword_capture.proto";
-import "timer_service.proto";
-import "timer_admin.proto";
-import "automation.proto";
+import "hannah/shared.proto";
+import "hannah/user_registry.proto";
+import "hannah/control.proto";
+import "hannah/satellite.proto";
+import "hannah/car_state.proto";
+import "hannah/event_stream.proto";
+import "hannah/satellite_proxy.proto";
+import "hannah/device_control_menu.proto";
+import "hannah/satellite_provisioning.proto";
+import "hannah/speaker_enrollment.proto";
+import "hannah/agent.proto";
+import "hannah/wakeword_capture.proto";
+import "hannah/timer_service.proto";
+import "hannah/timer_admin.proto";
+import "hannah/automation.proto";
 
 // ============================================================
 //  Hannah gRPC Service

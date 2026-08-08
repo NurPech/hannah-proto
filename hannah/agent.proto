@@ -2,8 +2,8 @@ syntax = "proto3";
 
 package hannah;
 
-import "shared.proto";
-import "weather.proto";
+import "hannah/shared.proto";
+import "hannah/weather.proto";
 
 option go_package = "github.com/NurPech/hannah-proto-go;hannahproto";
 

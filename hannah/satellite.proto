@@ -1,0 +1,58 @@
+syntax = "proto3";
+
+package hannah;
+
+option go_package = "github.com/NurPech/hannah-proto-go;hannahproto";
+
+message Satellite {
+  string device_id    = 1;
+  string room         = 2;   // live-reported room (UDP/proxy registration); empty if not connected
+  string address      = 3;   // IP:port of the UDP satellite; empty if not connected
+  reserved 4;
+  reserved "serial";         // removed: device_id is the hardware serial since v0.34
+  string display_name = 5;   // human-readable name from Core DB (empty if not provisioned)
+  string room_id            = 6;   // room assigned in Core DB, "" = unassigned
+  string room_display_name  = 7;   // display name of room_id
+  string last_seen           = 8;  // UTC "YYYY-MM-DD HH:MM:SS" from Core DB, "" = never seen
+  bool   connected            = 9;  // true if currently live (UDP or proxy)
+  bool   room_mismatch        = 10; // true if connected and live room differs from room_id
+  int32  owner_user_id        = 11; // Person (User) assigned as owner in Core DB, 0 = unassigned. #31
+  string owner_display_name   = 12; // display name of owner_user_id, "" if unassigned
+  string firmware_version     = 13; // firmware_version of the satellite
+  bool update_available       = 14; // true if the device has a new firmware available
+  optional string new_version   = 15;
+  bool smalltalk_followup_listen = 16; // #158: mic reopens after a Smalltalk answer instead of waiting for wake-word/PTT again
+}
+
+message GetSatellitesResponse {
+  repeated Satellite satellites = 1;
+}
+
+message SetSatelliteRoomRequest {
+  string device_id = 1;
+  string room_id    = 2;  // "" = unassign
+  int32 requestor_id     = 3; //requestor
+}
+
+message SetSatelliteDisplayNameRequest {
+  string device_id    = 1;
+  string display_name = 2;
+  int32 requestor_id       = 3; //requestor
+}
+
+message SetSatelliteOwnerRequest {
+  string device_id = 1;
+  int32  user_id    = 2;  // 0 = unassign
+  int32 requestor_id     = 3; //requestor
+}
+
+message SetSatelliteSmalltalkFollowupRequest {
+  string device_id    = 1;
+  bool   enabled       = 2;
+  int32  requestor_id  = 3; //requestor
+}
+
+message DeleteSatelliteRequest {
+  string device_id = 1;
+  int32 requestor_id    = 2; //requestor
+}

@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package hannah;
+
+option go_package = "github.com/NurPech/hannah-proto-go;hannahproto";
+
+import "google/protobuf/descriptor.proto";
+
+// Per-message compatibility counter — bumped only when THIS message has an
+// actual breaking change, independent of the repo-wide PROTO_VERSION (which
+// bumps for any breaking change anywhere in the schema). Lets a consumer-side
+// interceptor derive the minimum version a given RPC call actually needs
+// (see hannah#217) instead of rejecting on any unrelated proto change.
+//
+// Absent on a message means compat_version 1. Only set this explicitly once
+// a message needs a version > 1 — do not backfill it onto every message.
+extend google.protobuf.MessageOptions {
+  int32 compat_version = 50000;
+}

@@ -4,7 +4,7 @@ package hannah;
 
 option go_package = "github.com/NurPech/hannah-proto-go;hannahproto";
 
-import "agent.proto";
+import "hannah/agent.proto";
 
 message User {
   int32  id              = 1;

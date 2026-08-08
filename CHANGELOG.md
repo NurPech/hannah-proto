@@ -7,7 +7,14 @@
 
 
 
+
 ## **WORK IN PROGRESS**
+
+## 3.0.0 (2026-08-08)
+* Added: `compat_version` message-level option (`options.proto`) — lets an individual message carry its own breaking-change counter, independent of the repo-wide `PROTO_VERSION`; absent on a message means compat_version 1. Step 1 of `hannah-proto#9` (interceptor/consumer work follows separately in `hannah#217`)
+* Added: documented the deprecate-then-remove convention for RPCs/fields (README) — mark `deprecated = true` and keep until the next planned major cleanup instead of removing immediately, so unrelated consumers aren't forced to bump on every field/RPC change (`hannah-proto#9`)
+* **Breaking**: Satellite entity messages (`Satellite`, `GetSatellitesResponse`, `SetSatelliteRoomRequest`, `SetSatelliteDisplayNameRequest`, `SetSatelliteOwnerRequest`, `SetSatelliteSmalltalkFollowupRequest`, `DeleteSatelliteRequest`) moved from `control.proto` to new `satellite.proto` — same package, same wire format, but `buf breaking`'s `FILE` strategy flags any message that changes declaring file as removed. Acknowledged via the `PROTO_VERSION` bump (5 -> 6). Step 3 of `hannah-proto#9`
+* **Breaking**: all `.proto` files moved from the repo root into `hannah/` (`buf.yaml`'s `PACKAGE_DIRECTORY_MATCH` lint exception removed — package/directory now match). `buf breaking`'s `FILE` strategy flags every message across all 18 files as removed, but Go/TypeScript/Python codegen output is unchanged (generated files get flattened back to their pre-move locations in CI/`npm/scripts/generate.sh`) — consumers only need a dependency bump, no code changes. Acknowledged via the `PROTO_VERSION` bump (6 -> 7). Step 5 of `hannah-proto#9`
 
 ## 2.1.0 (2026-08-06)
 * Added: `AgentSatelliteUpdate.dnd` (`agent.proto`) — lets Core report a satellite's current do-not-disturb state back to the adapter, closing the confirm loop that `mute`/`volume` already had (`hannah-proto#8`, prep for `hannah#56` follow-up)

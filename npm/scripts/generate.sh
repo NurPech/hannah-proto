@@ -22,6 +22,12 @@ rm -rf src
 # from inside npm/, buf treats this directory as its own module input.
 (cd .. && "$BUF" generate --template buf.gen.ts.yaml --output .)
 
+# ts-proto mirrors the source .proto directory (hannah/) into the output —
+# flatten back to a single directory so index.ts's barrel loop below (and
+# every published import path) stays exactly as before the proto move.
+mv src/hannah/* src/
+rmdir src/hannah
+
 echo "export const PROTO_VERSION = $(cat ../PROTO_VERSION);" > src/version.ts
 
 {
