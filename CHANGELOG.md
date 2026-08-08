@@ -4,11 +4,10 @@
     ## **WORK IN PROGRESS**
 -->
 
-
-
-
-
 ## **WORK IN PROGRESS**
+
+## 3.1.0 (2026-08-08)
+* Added: `compat_version`-aware interceptor helpers for Python, Go, and TypeScript (`python/hannah_proto/interceptor/`, `go/interceptor/`, `npm/interceptor/`) — derive the actual required version for a given RPC call from the request/response message types it uses, instead of gating on the repo-wide `PROTO_VERSION`. Go and TypeScript needed build/CI changes to ship hand-written source alongside generated code (`.gitlab-ci.yml`'s `publish:go`, `npm/scripts/generate.sh`); TypeScript additionally generates a build-time `compat_versions.ts` map from `buf build`'s JSON descriptor output, since ts-proto (no `outputSchema`) exposes no option/descriptor data at runtime. Step 4 of `hannah-proto#9` — consumption in Hannah Core is `hannah#217`
 
 ## 3.0.0 (2026-08-08)
 * Added: `compat_version` message-level option (`options.proto`) — lets an individual message carry its own breaking-change counter, independent of the repo-wide `PROTO_VERSION`; absent on a message means compat_version 1. Step 1 of `hannah-proto#9` (interceptor/consumer work follows separately in `hannah#217`)

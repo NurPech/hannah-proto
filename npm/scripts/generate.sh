@@ -28,6 +28,19 @@ rm -rf src
 mv src/hannah/* src/
 rmdir src/hannah
 
+# Per-method compat_version map (hannah-proto#9) — generated from the
+# current schema via buf's own JSON descriptor output, not from ts-proto
+# (outputSchema is off, so the generated types above carry no
+# descriptor/options data of their own). See gen-compat-versions.js.
+BUF_BIN="$BUF" node scripts/gen-compat-versions.js
+
+# Hand-written source that ships alongside the generated stubs above,
+# outside src/ so the `rm -rf src` at the top of this script never touches
+# it (see npm/interceptor/). Copied in after generation, before the
+# barrel-export loop below, so it's picked up the same way as any
+# generated file.
+cp interceptor/*.ts src/
+
 echo "export const PROTO_VERSION = $(cat ../PROTO_VERSION);" > src/version.ts
 
 {
