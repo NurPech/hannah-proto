@@ -5,7 +5,11 @@
 -->
 
 
+
 ## **WORK IN PROGRESS**
+
+## 3.3.0 (2026-08-09)
+* Added: `CompatVersionSyncClientInterceptor` (`python/hannah_proto/interceptor/compat_interceptor.py`) — sync `grpc.Channel` counterpart to `CompatVersionClientInterceptor` (grpc.aio), for Hannah-WebUI's synchronous client. Existing async class unchanged, no breaking change for Telegram. `hannah-proto#11`
 
 ## 3.2.0 (2026-08-08)
 * Added: `CompatVersionClientInterceptor` (`python/hannah_proto/interceptor/compat_interceptor.py`) — a ready-made `grpc.aio` client interceptor, matching what Go/TypeScript already got in 3.1.0. Previously Python only had `client_compat_version_metadata()`, a bare metadata-tuple helper that would have forced every async Python client to hand-roll its own interceptor plumbing around it (`hannah-proto#10`, prep for Telegram's `hannah#217` adoption)

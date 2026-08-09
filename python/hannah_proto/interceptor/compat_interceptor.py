@@ -164,6 +164,9 @@ class CompatVersionClientInterceptor(
     lookup — that's the reason this exists as a class here instead of
     leaving `client_compat_version_metadata` as the only option (see
     hannah-proto#10).
+
+    For a plain synchronous grpc.Channel client (e.g. Hannah-WebUI), use
+    `CompatVersionSyncClientInterceptor` below instead.
     """
 
     def __init__(self, service: ServiceDescriptor):
@@ -187,6 +190,64 @@ class CompatVersionClientInterceptor(
     async def intercept_stream_stream(self, continuation, client_call_details, request_iterator):
         value = self._value_for(client_call_details.method)
         return await continuation(_add_compat_version_metadata(client_call_details, value), request_iterator)
+
+
+class _SyncClientCallDetails(
+    collections.namedtuple(
+        "_SyncClientCallDetails",
+        ("method", "timeout", "metadata", "credentials", "wait_for_ready"),
+    ),
+    grpc.ClientCallDetails,
+):
+    pass
+
+
+def _add_compat_version_metadata_sync(client_call_details, value: str) -> _SyncClientCallDetails:
+    metadata = list(client_call_details.metadata or [])
+    metadata.append((COMPAT_VERSION_METADATA_KEY, value))
+    return _SyncClientCallDetails(
+        client_call_details.method,
+        client_call_details.timeout,
+        metadata,
+        client_call_details.credentials,
+        client_call_details.wait_for_ready,
+    )
+
+
+class CompatVersionSyncClientInterceptor(
+    grpc.UnaryUnaryClientInterceptor,
+    grpc.UnaryStreamClientInterceptor,
+    grpc.StreamUnaryClientInterceptor,
+    grpc.StreamStreamClientInterceptor,
+):
+    """Sync (plain grpc.Channel, not grpc.aio) counterpart to
+    CompatVersionClientInterceptor — same x-compat-version attachment logic,
+    just on the four sync ClientInterceptor base classes instead of the
+    grpc.aio ones. Built for Hannah-WebUI, which uses a synchronous grpc
+    client (hannah-proto#11).
+    """
+
+    def __init__(self, service: ServiceDescriptor):
+        self._required = build_required_versions(service)
+
+    def _value_for(self, method: str) -> str:
+        return str(self._required.get(method, DEFAULT_COMPAT_VERSION))
+
+    def intercept_unary_unary(self, continuation, client_call_details, request):
+        value = self._value_for(client_call_details.method)
+        return continuation(_add_compat_version_metadata_sync(client_call_details, value), request)
+
+    def intercept_unary_stream(self, continuation, client_call_details, request):
+        value = self._value_for(client_call_details.method)
+        return continuation(_add_compat_version_metadata_sync(client_call_details, value), request)
+
+    def intercept_stream_unary(self, continuation, client_call_details, request_iterator):
+        value = self._value_for(client_call_details.method)
+        return continuation(_add_compat_version_metadata_sync(client_call_details, value), request_iterator)
+
+    def intercept_stream_stream(self, continuation, client_call_details, request_iterator):
+        value = self._value_for(client_call_details.method)
+        return continuation(_add_compat_version_metadata_sync(client_call_details, value), request_iterator)
 
 
 def _make_abort_handler(handler: "grpc.RpcMethodHandler", message: str) -> "grpc.RpcMethodHandler":
