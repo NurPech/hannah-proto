@@ -34,6 +34,16 @@ rmdir src/hannah
 # descriptor/options data of their own). See gen-compat-versions.js.
 BUF_BIN="$BUF" node scripts/gen-compat-versions.js
 
+# Compiled google.protobuf.FileDescriptorSet (binary), for consumers that
+# need real runtime reflection (e.g. deriving JSON Schemas per message —
+# grpc-hannah-mcp) — same problem gen-compat-versions.js works around
+# above, but ts-proto's generated types can't provide it, so we ship the
+# descriptor itself instead. Written straight to dist/ rather than src/,
+# since tsc only processes src/*.ts and would otherwise drop this file
+# before it reaches the published package.
+mkdir -p dist
+(cd .. && "$BUF" build --output npm/dist/descriptor.binpb)
+
 # Hand-written source that ships alongside the generated stubs above,
 # outside src/ so the `rm -rf src` at the top of this script never touches
 # it (see npm/interceptor/). Copied in after generation, before the

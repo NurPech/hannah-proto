@@ -6,7 +6,11 @@
 
 
 
+
 ## **WORK IN PROGRESS**
+
+## 3.3.1 (2026-08-11)
+* Added: `dist/descriptor.binpb` (compiled `google.protobuf.FileDescriptorSet`) now ships inside the npm package (`npm/scripts/generate.sh`) — gives consumers real runtime reflection over field names/types/options, since `ts-proto` (`outputSchema` off) exposes none of that on the generated types themselves. Same `buf build` mechanism `gen-compat-versions.js` already uses at this repo's own build time, just additionally shipped as a runtime asset (prep for `grpc-hannah-mcp`'s dynamic per-message tool generation)
 
 ## 3.3.0 (2026-08-09)
 * Added: `CompatVersionSyncClientInterceptor` (`python/hannah_proto/interceptor/compat_interceptor.py`) — sync `grpc.Channel` counterpart to `CompatVersionClientInterceptor` (grpc.aio), for Hannah-WebUI's synchronous client. Existing async class unchanged, no breaking change for Telegram. `hannah-proto#11`
