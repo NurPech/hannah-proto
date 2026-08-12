@@ -19,6 +19,7 @@ import "hannah/wakeword_capture.proto";
 import "hannah/timer_service.proto";
 import "hannah/timer_admin.proto";
 import "hannah/automation.proto";
+import "hannah/activity_log.proto";
 
 // ============================================================
 //  Hannah gRPC Service
@@ -205,4 +206,12 @@ service HannahService {
   // Chosen over SubscribeEvents so a reconnecting service always gets a fresh snapshot
   // instead of missing state changes that happened while it was offline.
   rpc AutomationConnect (stream AutomationMessage) returns (stream AutomationCommand);
+
+  // --- Activity Log ---
+  // Read access to the Activity Log (#220) for external consumers (WebUI). List returns
+  // full entry detail inline (transcript, intent + intent_meta, answer text) with
+  // cursor-based pagination; audio is fetched separately, decoded server-side from the
+  // stored WAV and streamed as raw PCM chunks.
+  rpc ListActivityLog     (ListActivityLogRequest)     returns (ListActivityLogResponse);
+  rpc StreamActivityAudio (StreamActivityAudioRequest) returns (stream ActivityAudioChunk);
 }

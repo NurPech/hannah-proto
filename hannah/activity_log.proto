@@ -1,0 +1,47 @@
+syntax = "proto3";
+
+package hannah;
+
+option go_package = "github.com/NurPech/hannah-proto-go;hannahproto";
+
+// --- Activity Log ---
+// Read access to the Activity Log (#220) for external consumers (WebUI) — transcript,
+// intent + intent_meta, answer text and (streamed) audio playback. Access control
+// (requestor_id vs. owned entries, trust-level-10 admin override) is enforced by Core,
+// not expressed in this schema.
+
+message ActivityLogEntry {
+  int64  id = 1;
+  string ts = 2;
+  string channel_type = 3;
+  string channel_id = 4;
+  int32  user_id = 5;            // 0 = unresolved/unset
+  string raw_text = 6;
+  string intent_name = 7;
+  string intent_meta_json = 8;   // JSON-encoded, "" = none
+  string answer_text = 9;
+  bool   has_audio = 10;         // audio_path was set — tells the caller whether to offer playback
+}
+
+message ListActivityLogRequest {
+  int32 requestor_id = 1;
+  int32 filter_user_id = 2;      // only honored when requestor's trust_level >= 10; 0 = no target filter
+  int32 page_size = 3;
+  int64 before_id = 4;           // cursor, 0 = start from newest
+}
+
+message ListActivityLogResponse {
+  repeated ActivityLogEntry entries = 1;
+  bool has_more = 2;
+}
+
+message StreamActivityAudioRequest {
+  int32 requestor_id = 1;
+  int64 activity_log_id = 2;
+}
+
+// A chunk of raw PCM audio (16-bit signed, mono) streamed from a single Activity Log entry.
+message ActivityAudioChunk {
+  bytes pcm = 1;
+  int32 sample_rate = 2;
+}

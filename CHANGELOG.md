@@ -7,7 +7,11 @@
 
 
 
+
 ## **WORK IN PROGRESS**
+
+## 3.4.0 (2026-08-12)
+* Added: `hannah/activity_log.proto` — `ListActivityLogRequest`/`Response`, `StreamActivityAudioRequest`, `ActivityAudioChunk` messages plus `ListActivityLog`/`StreamActivityAudio` RPCs, for external consumers (WebUI) to read the Activity Log (transcript, intent + intent_meta, answer text) and stream back the associated audio as raw PCM. Purely additive, `PROTO_VERSION` unchanged. `hannah-proto#12`
 
 ## 3.3.1 (2026-08-11)
 * Added: `dist/descriptor.binpb` (compiled `google.protobuf.FileDescriptorSet`) now ships inside the npm package (`npm/scripts/generate.sh`) — gives consumers real runtime reflection over field names/types/options, since `ts-proto` (`outputSchema` off) exposes none of that on the generated types themselves. Same `buf build` mechanism `gen-compat-versions.js` already uses at this repo's own build time, just additionally shipped as a runtime asset (prep for `grpc-hannah-mcp`'s dynamic per-message tool generation)
