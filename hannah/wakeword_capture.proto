@@ -31,3 +31,45 @@ message SatelliteAudioChunk {
   int32 sample_rate      = 2;  // Hz, typically 16000
   bool  end_of_utterance = 3;  // true = PTT released, utterance boundary
 }
+
+// Sent by Hannah Core over the CollectorConnect stream to start or stop a
+// satellite capture — the Collector-side counterpart to RequestSatelliteCapture/
+// ReleaseSatelliteCapture, pushed proactively instead of polled.
+// capture_mode is only meaningful when sample_type is hey_hannah.
+message CaptureCommand {
+  string device_id = 1;
+  SampleType sample_type = 2;
+  CaptureMode capture_mode = 3;
+  bool stop = 4;
+}
+
+enum CaptureMode {
+  CAPTURE_MODE_UNSPECIFIED = 0;
+  CAPTURE_MODE_MANUAL = 1;
+  CAPTURE_MODE_PTT = 2;
+  CAPTURE_MODE_PLINK = 3;
+}
+
+// Deliberately a oneof of (currently empty) payload messages rather than a plain
+// enum — leaves room to attach per-sample-type data later without a breaking change.
+message SampleType {
+  oneof payload {
+    NoiseSample noise = 1;
+    HeyHannahSample hey_hannah = 2;
+  }
+}
+
+message NoiseSample {}
+message HeyHannahSample {}
+
+// Sent by the Collector over the CollectorConnect stream.
+message CollectorMessage {
+  oneof payload {
+    CollectorAck ack = 1;  // initial confirmation when stream is established
+  }
+}
+
+// Sent once by the Collector after the CollectorConnect stream is established.
+message CollectorAck {
+  string message = 1;  // human-readable status
+}

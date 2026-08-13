@@ -8,7 +8,11 @@
 
 
 
+
 ## **WORK IN PROGRESS**
+
+## 3.5.0 (2026-08-13)
+* Added: `hannah/wakeword_capture.proto` — `CaptureCommand` message (`device_id`, `sample_type`, `capture_mode`, `stop`) plus `CollectorMessage`/`CollectorAck` and the `CollectorConnect` RPC (bidirectional stream, analogous to `TimerConnect`) on `HannahService` — lets Hannah Core push satellite-capture start/stop commands down to the Collector instead of it polling. Purely additive, `PROTO_VERSION` unchanged. `hannah-proto#13`
 
 ## 3.4.0 (2026-08-12)
 * Added: `hannah/activity_log.proto` — `ListActivityLogRequest`/`Response`, `StreamActivityAudioRequest`, `ActivityAudioChunk` messages plus `ListActivityLog`/`StreamActivityAudio` RPCs, for external consumers (WebUI) to read the Activity Log (transcript, intent + intent_meta, answer text) and stream back the associated audio as raw PCM. Purely additive, `PROTO_VERSION` unchanged. `hannah-proto#12`
