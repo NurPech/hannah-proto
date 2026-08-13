@@ -160,6 +160,10 @@ service HannahService {
   // The Collector initiates and holds the connection open; Hannah pushes CaptureCommands
   // down to start/stop satellite captures instead of the Collector polling for them.
   rpc CollectorConnect (stream CollectorMessage) returns (stream CaptureCommand);
+  // Unary trigger for external callers (e.g. WebUI) that can't hold a CollectorConnect
+  // stream themselves — Hannah relays the command over its own CollectorConnect stream
+  // to the connected Collector. Fails with ok=false if no Collector is connected.
+  rpc TriggerCollectorCapture (CaptureCommand) returns (StatusResponse);
 
   // --- Satellite Proxy (Go gRPC proxy) ---
   // Bidirectional keepalive stream. Proxy sends heartbeats; Hannah sends TTS

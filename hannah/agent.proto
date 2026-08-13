@@ -4,6 +4,7 @@ package hannah;
 
 import "hannah/shared.proto";
 import "hannah/weather.proto";
+import "hannah/wakeword_capture.proto";
 
 option go_package = "github.com/NurPech/hannah-proto-go;hannahproto";
 
@@ -24,8 +25,9 @@ message AgentMessage {
 
 // Adapter instructs Hannah to control satellites in a room or a specific satellite.
 // room: room_id (enum ID segment) or "all" for all rooms.
-// device_id: if non-empty, only the named satellite is targeted (volume/mute only);
+// device_id: if non-empty, only the named satellite is targeted (volume/mute/capture only);
 //            room is still required (used for room-scoped commands and as fallback).
+//            For capture, device_id is mandatory — never room-broadcast.
 message AgentSatelliteControl {
   string room      = 1;
   string device_id = 7;  // optional: target a specific satellite instead of the whole room
@@ -36,7 +38,16 @@ message AgentSatelliteControl {
     string announcement           = 5;  // speak plain-text announcement (verbatim)
     string announcement_ssml      = 6;  // speak SSML announcement
     string announcement_rephrase  = 8;  // speak announcement, text rephrased by LLM first
+    CaptureControl capture        = 9;  // start/stop a Voice Collector capture on this satellite
   }
+}
+
+// Start or stop a Voice Collector capture — the AgentSatelliteControl counterpart
+// to CaptureCommand, routed to the satellite named by AgentSatelliteControl.device_id.
+message CaptureControl {
+  SampleType  sample_type  = 1;
+  CaptureMode capture_mode = 2;
+  bool        stop         = 3;
 }
 
 // An ioBroker state change event. ack=true means the device confirmed the value

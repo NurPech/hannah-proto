@@ -4,12 +4,10 @@
     ## **WORK IN PROGRESS**
 -->
 
-
-
-
-
-
 ## **WORK IN PROGRESS**
+
+## 3.6.0 (2026-08-13)
+* Added: `hannah/agent.proto` — `CaptureControl` message plus a new `capture` case on `AgentSatelliteControl.control`, letting the ioBroker adapter trigger a Voice Collector capture start/stop on a specific satellite (`device_id` mandatory, never room-broadcast). Added `hannah/hannah.proto` — `TriggerCollectorCapture` unary RPC (`CaptureCommand` → `StatusResponse`) for callers (e.g. WebUI) that can't hold a `CollectorConnect` stream themselves. Purely additive, `PROTO_VERSION` unchanged. `hannah-proto#14`
 
 ## 3.5.0 (2026-08-13)
 * Added: `hannah/wakeword_capture.proto` — `CaptureCommand` message (`device_id`, `sample_type`, `capture_mode`, `stop`) plus `CollectorMessage`/`CollectorAck` and the `CollectorConnect` RPC (bidirectional stream, analogous to `TimerConnect`) on `HannahService` — lets Hannah Core push satellite-capture start/stop commands down to the Collector instead of it polling. Purely additive, `PROTO_VERSION` unchanged. `hannah-proto#13`
