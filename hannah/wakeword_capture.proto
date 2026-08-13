@@ -45,7 +45,9 @@ message CaptureCommand {
 
 enum CaptureMode {
   CAPTURE_MODE_UNSPECIFIED = 0;
-  CAPTURE_MODE_MANUAL = 1;
+  // Deprecated: identical in practice to CAPTURE_MODE_PTT (both mean "hand-triggered
+  // via the PTT button") — never produce this value, use CAPTURE_MODE_PTT instead.
+  CAPTURE_MODE_MANUAL = 1 [deprecated = true];
   CAPTURE_MODE_PTT = 2;
   CAPTURE_MODE_PLINK = 3;
 }

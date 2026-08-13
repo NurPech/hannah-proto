@@ -6,6 +6,9 @@
 
 ## **WORK IN PROGRESS**
 
+## 3.6.1 (2026-08-13)
+* Deprecated: `CaptureMode.CAPTURE_MODE_MANUAL` (`wakeword_capture.proto`) — identical in practice to `CAPTURE_MODE_PTT` (both mean "hand-triggered via the PTT button"), a design oversight from #13. Marked `[deprecated = true]` per the deprecate-then-remove convention instead of a breaking removal; consumers should use `CAPTURE_MODE_PTT`. `PROTO_VERSION` unchanged. `hannah-proto#15`
+
 ## 3.6.0 (2026-08-13)
 * Added: `hannah/agent.proto` — `CaptureControl` message plus a new `capture` case on `AgentSatelliteControl.control`, letting the ioBroker adapter trigger a Voice Collector capture start/stop on a specific satellite (`device_id` mandatory, never room-broadcast). Added `hannah/hannah.proto` — `TriggerCollectorCapture` unary RPC (`CaptureCommand` → `StatusResponse`) for callers (e.g. WebUI) that can't hold a `CollectorConnect` stream themselves. Purely additive, `PROTO_VERSION` unchanged. `hannah-proto#14`
 
