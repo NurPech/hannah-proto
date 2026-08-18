@@ -20,6 +20,7 @@ import "hannah/timer_service.proto";
 import "hannah/timer_admin.proto";
 import "hannah/automation.proto";
 import "hannah/activity_log.proto";
+import "hannah/messages.proto";
 
 // ============================================================
 //  Hannah gRPC Service
@@ -222,4 +223,9 @@ service HannahService {
   // stored WAV and streamed as raw PCM chunks.
   rpc ListActivityLog     (ListActivityLogRequest)     returns (ListActivityLogResponse);
   rpc StreamActivityAudio (StreamActivityAudioRequest) returns (stream ActivityAudioChunk);
+
+  // --- Messages (passive per-user mailbox, third notification type) ---
+  rpc CreateMessage (CreateMessageRequest) returns (StatusResponse);
+  rpc ListMessages  (ListMessagesRequest)  returns (ListMessagesResponse);
+  rpc DeleteMessage (DeleteMessageRequest) returns (StatusResponse);
 }

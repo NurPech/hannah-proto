@@ -6,6 +6,9 @@
 
 ## **WORK IN PROGRESS**
 
+## 3.7.0 (2026-08-18)
+* Added: `hannah/messages.proto` — `Message`, `CreateMessageRequest`, `ListMessagesRequest`/`Response`, `DeleteMessageRequest` messages plus `CreateMessage`/`ListMessages`/`DeleteMessage` RPCs on `HannahService`, for a passive per-user notification mailbox (third notification type alongside `Notify`/`Announce`, both of which play immediately). Purely additive, `PROTO_VERSION` unchanged. `hannah-proto#16`
+
 ## 3.6.1 (2026-08-13)
 * Deprecated: `CaptureMode.CAPTURE_MODE_MANUAL` (`wakeword_capture.proto`) — identical in practice to `CAPTURE_MODE_PTT` (both mean "hand-triggered via the PTT button"), a design oversight from #13. Marked `[deprecated = true]` per the deprecate-then-remove convention instead of a breaking removal; consumers should use `CAPTURE_MODE_PTT`. `PROTO_VERSION` unchanged. `hannah-proto#15`
 
