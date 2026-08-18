@@ -4,7 +4,11 @@
     ## **WORK IN PROGRESS**
 -->
 
+
 ## **WORK IN PROGRESS**
+
+## 3.7.1 (2026-08-18)
+* Added: `hannah/messages.proto` — `sender_user_id` and `reply_to_id` fields on `Message` and `CreateMessageRequest` (0 = system message / not a reply, same zero-sentinel convention as `ListMessagesRequest.filter_user_id`), so the mailbox can carry user-to-user messages and threaded replies instead of only system-originated ones. Purely additive, `PROTO_VERSION` unchanged. `hannah#237`
 
 ## 3.7.0 (2026-08-18)
 * Added: `hannah/messages.proto` — `Message`, `CreateMessageRequest`, `ListMessagesRequest`/`Response`, `DeleteMessageRequest` messages plus `CreateMessage`/`ListMessages`/`DeleteMessage` RPCs on `HannahService`, for a passive per-user notification mailbox (third notification type alongside `Notify`/`Announce`, both of which play immediately). Purely additive, `PROTO_VERSION` unchanged. `hannah-proto#16`

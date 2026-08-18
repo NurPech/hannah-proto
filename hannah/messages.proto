@@ -19,12 +19,16 @@ message Message {
   string content = 3;
   string source = 4;
   string created_at = 5;
+  int32  sender_user_id = 6;   // 0 = system message (not reply-capable), see hannah#237
+  int32  reply_to_id = 7;      // 0 = not a reply; otherwise id of the Message being answered
 }
 
 message CreateMessageRequest {
   int32  user_id = 1;
   string content = 2;
   string source = 3;
+  int32  sender_user_id = 4;   // 0 = system message, same convention as Message.sender_user_id
+  int32  reply_to_id = 5;      // 0 = not a reply
 }
 
 message ListMessagesRequest {
