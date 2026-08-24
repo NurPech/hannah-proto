@@ -4,8 +4,10 @@
     ## **WORK IN PROGRESS**
 -->
 
-
 ## **WORK IN PROGRESS**
+
+## 3.7.2 (2026-08-24)
+* Deprecated: `SubmitSatelliteAudioRequest.speaker_user_id` (`satellite_proxy.proto`) — Hannah Core now resolves the speaker itself via its own VoiceID client instead of trusting a proxy-supplied value (`hannah#210`). Marked `[deprecated = true]` per the deprecate-then-remove convention instead of a breaking removal. `PROTO_VERSION` unchanged; `SubmitSatelliteAudioRequest.compat_version` bumped to 2 — first real use of the mechanism prepared in `hannah-proto#9`/`hannah#217`. `hannah-proto#17`
 
 ## 3.7.1 (2026-08-18)
 * Added: `hannah/messages.proto` — `sender_user_id` and `reply_to_id` fields on `Message` and `CreateMessageRequest` (0 = system message / not a reply, same zero-sentinel convention as `ListMessagesRequest.filter_user_id`), so the mailbox can carry user-to-user messages and threaded replies instead of only system-originated ones. Purely additive, `PROTO_VERSION` unchanged. `hannah#237`

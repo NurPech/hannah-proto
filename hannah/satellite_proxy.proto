@@ -4,6 +4,8 @@ package hannah;
 
 option go_package = "github.com/NurPech/hannah-proto-go;hannahproto";
 
+import "hannah/options.proto";
+
 // Sent by the proxy periodically to keep the RegisterProxy stream alive.
 message ProxyHeartbeat {
   string proxy_id = 1;   // human-readable identifier, e.g. "hannah-proxy-living-room"
@@ -41,13 +43,16 @@ message PlayAudioCommand {
 
 // Sent by the proxy when a satellite has finished recording an utterance.
 message SubmitSatelliteAudioRequest {
+  option (compat_version) = 2;
+
   string device_id    = 1;  // satellite device name
   string room         = 2;  // room name (from proxy registration / config)
   bytes  audio_pcm    = 3;  // raw PCM, 16-bit signed mono, 16000 Hz
   int32  sample_rate  = 4;  // sample rate of the audio (typically 16000)
-  // Optional: speaker identity (Hannah users.id) provided by an upstream speaker-ID service.
-  // Empty = anonymous (Hannah treats as unknown user).
-  string speaker_user_id = 5;
+  // Deprecated: Hannah Core now resolves the speaker itself via its own
+  // VoiceID client, independent of proxy connectivity (hannah#210). The
+  // proxy no longer populates this field and Core no longer reads it.
+  string speaker_user_id = 5 [deprecated = true];
 }
 
 message SubmitSatelliteAudioResponse {
