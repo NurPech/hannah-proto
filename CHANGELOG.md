@@ -6,6 +6,9 @@
 
 ## **WORK IN PROGRESS**
 
+## 3.8.0 (2026-09-05)
+* Added: `hannah/agent.proto` — `AgentDevice.device_id` and `AgentDevice.canonical_key`, letting the ioBroker adapter tell Core directly which device a state belongs to and what semantic role it plays (`on`/`level`/`color`/...), instead of Core inferring both from `state_id`'s path depth and a hand-maintained `iobroker.state_names` suffix table (`hannah#256`, `hannah#257`). Both fields are optional/empty-safe — an adapter that hasn't been updated yet simply omits them and Core falls back to its existing heuristics. Purely additive, `PROTO_VERSION` unchanged; `AgentDevice.compat_version` bumped to 2. `hannah-proto#2`
+
 ## 3.7.2 (2026-08-24)
 * Deprecated: `SubmitSatelliteAudioRequest.speaker_user_id` (`satellite_proxy.proto`) — Hannah Core now resolves the speaker itself via its own VoiceID client instead of trusting a proxy-supplied value (`hannah#210`). Marked `[deprecated = true]` per the deprecate-then-remove convention instead of a breaking removal. `PROTO_VERSION` unchanged; `SubmitSatelliteAudioRequest.compat_version` bumped to 2 — first real use of the mechanism prepared in `hannah-proto#9`/`hannah#217`. `hannah-proto#17`
 

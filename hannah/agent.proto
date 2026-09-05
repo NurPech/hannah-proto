@@ -5,6 +5,7 @@ package hannah;
 import "hannah/shared.proto";
 import "hannah/weather.proto";
 import "hannah/wakeword_capture.proto";
+import "hannah/options.proto";
 
 option go_package = "github.com/NurPech/hannah-proto-go;hannahproto";
 
@@ -174,6 +175,8 @@ message AgentStateValue {
 
 // A device from the ioBroker adapter
 message AgentDevice {
+    option (compat_version) = 2;
+
     string state_id  = 1;
     string floor     = 2;
     string room      = 3;  // room_id: stable enum ID segment, e.g. "wohnzimmer" or "living_room"
@@ -185,6 +188,19 @@ message AgentDevice {
     StateType state_type      = 9;   // derived from ioBroker's common.type/role/states
     EnumValues enum_values    = 10;  // only set when state_type is ENUM or COLOR
     bool writable = 11; // derived from ioBroker's common.write
+    // Grouping ID for the device this state belongs to (the adapter's own
+    // `deviceId`, one path segment up from state_id) — lets Core group sibling
+    // states without guessing from state_id's path depth. Empty = adapter hasn't
+    // been updated yet; Core falls back to its own path-depth heuristic (hannah#257).
+    string device_id     = 12;
+    // Semantic role of this specific state (e.g. "on", "level", "color", "current",
+    // "expected"), resolved by the adapter from the state's ioBroker common.role —
+    // same per-state basis as device_type, not aggregated across sibling states
+    // (a thermostat's "current" and "expected" states have different roles but
+    // belong to one device). Empty = adapter hasn't been updated yet or role is
+    // unresolvable; Core falls back to its iobroker.state_names default table
+    // (hannah#256, hannah#257).
+    string canonical_key = 13;
 }
 
 // a list with all known devices from the ioBroker adapter
