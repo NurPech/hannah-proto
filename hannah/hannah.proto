@@ -186,7 +186,12 @@ service HannahService {
   rpc ProvisionSatellite  (ProvisionSatelliteRequest)          returns (StatusResponse);
 
   // --- Speaker Enrollment ---
-  rpc EnrollVoiceprint    (EnrollVoiceprintRequest)            returns (StatusResponse);
+  // Trigger a guided voice-enrollment dialog for user_id at satellite_id (hannah#8);
+  // Core orchestrates the dialog itself. EnrollVoiceprint stays available as the
+  // low-level "store one already-captured sample" call — kept for now (additive,
+  // no hard cut) until hannah#8 confirms Core no longer needs it as an external RPC.
+  rpc StartVoiceEnrollment (StartVoiceEnrollmentRequest)       returns (StatusResponse);
+  rpc EnrollVoiceprint     (EnrollVoiceprintRequest)           returns (StatusResponse);
 
   // --- Timer Service ---
   // Bidirectional stream between the Hannah Timer Service and Hannah Core.

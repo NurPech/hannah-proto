@@ -9,3 +9,17 @@ message EnrollVoiceprintRequest {
   bytes  audio_pcm   = 2;  // raw PCM, 16-bit signed mono
   int32  sample_rate = 3;  // e.g. 16000
 }
+
+// Triggers a guided voice-enrollment dialog (hannah#8) for user_id at satellite_id.
+// Called by an already-authenticated external client (WebUI/Telegram) against Core,
+// which then orchestrates the recording dialog itself (STT prompts, sample capture,
+// eventually calling voiceid_client.enroll() directly) instead of the caller submitting
+// samples via EnrollVoiceprint. requestor_id/user_id follow the same split as
+// ListActivityLogRequest (activity_log.proto): enrolling another user
+// (requestor_id != user_id) requires the requestor's trust_level >= 10 — enforced by
+// Core, not expressed in this schema.
+message StartVoiceEnrollmentRequest {
+  int32  requestor_id = 1;
+  int32  user_id      = 2;
+  string satellite_id = 3;
+}
