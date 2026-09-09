@@ -6,6 +6,9 @@
 
 ## **WORK IN PROGRESS**
 
+## 3.10.0 (2026-09-09)
+* Added: `hannah/agent.proto` — `AgentDevice.inverted`, letting the ioBroker adapter tell Core that a device's actuator uses the inverted shutter/awning convention (0%=open, 100%=closed, e.g. some Homematic/KNX actuators) instead of Hannah's default (0%=closed, 100%=open based on light-ingress logic), so Core can compensate per device instead of assuming the default convention everywhere. `optional`, same "unset = no override/unknown, not `false`" convention as `AgentSatelliteUpdate.mute`/`.dnd`. Own typed field rather than a generic metadata blob, consistent with how `device_id`/`canonical_key`/`writable`/`state_type` were added to this message — type safety across Go/Python/TS outweighs blob flexibility for a single concretely-needed flag. Purely additive, `PROTO_VERSION` unchanged; `AgentDevice.compat_version` bumped to 3. Prerequisite for Hannah Core (`hannah#270`) and the ioBroker adapter ([NurPech/ioBroker.hannah#177](https://github.com/NurPech/ioBroker.hannah/issues/177)); pin bumps in both follow after release, once actually needed. `hannah-proto#4`
+
 ## 3.9.0 (2026-09-06)
 * Added: `hannah/speaker_enrollment.proto` — `StartVoiceEnrollmentRequest` (`requestor_id`, `user_id`, `satellite_id`) plus a `StartVoiceEnrollment` RPC on `HannahService`, letting an already-authenticated external client (WebUI/Telegram) trigger a guided voice-enrollment dialog (`hannah#8`) for a given user at a given satellite instead of only being able to submit an already-captured sample via `EnrollVoiceprint`. `requestor_id`/`user_id` follow the same split as `ListActivityLogRequest`'s `requestor_id`/`filter_user_id` (enrolling another user requires trust_level >= 10, enforced by Core). `EnrollVoiceprint` stays as-is for now (additive, no hard cut). Purely additive, `PROTO_VERSION` unchanged. `hannah-proto#3`
 

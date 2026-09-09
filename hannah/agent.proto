@@ -175,7 +175,7 @@ message AgentStateValue {
 
 // A device from the ioBroker adapter
 message AgentDevice {
-    option (compat_version) = 2;
+    option (compat_version) = 3;
 
     string state_id  = 1;
     string floor     = 2;
@@ -201,6 +201,11 @@ message AgentDevice {
     // unresolvable; Core falls back to its iobroker.state_names default table
     // (hannah#256, hannah#257).
     string canonical_key = 13;
+    // Whether this device's actuator uses the inverted convention (0%=open,
+    // 100%=closed) instead of Hannah's default (0%=closed, 100%=open), e.g.
+    // some Homematic/KNX shutter/awning actuators. Unset = unknown/no override,
+    // not `false` (hannah-proto#4).
+    optional bool inverted = 14;
 }
 
 // a list with all known devices from the ioBroker adapter
