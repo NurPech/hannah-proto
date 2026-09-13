@@ -119,6 +119,12 @@ service HannahService {
   rpc UpdateBleTag  (UpdateBleTagRequest) returns (StatusResponse);
   rpc DeleteBleTag  (DeleteBleTagRequest) returns (StatusResponse);
 
+  // --- Presence Sources (Admin-UI, hannah#294 — presence fusion) ---
+  rpc GetPresenceSources    (Empty)                        returns (GetPresenceSourcesResponse);
+  rpc CreatePresenceSource  (CreatePresenceSourceRequest)   returns (CreatePresenceSourceResponse);
+  rpc UpdatePresenceSource  (UpdatePresenceSourceRequest)   returns (StatusResponse);
+  rpc DeletePresenceSource  (DeletePresenceSourceRequest)   returns (StatusResponse);
+
   // --- Cars (Admin-UI, #115 — eigenes Modell + user_to_car-Pivot statt Settings-JSON-Blob) ---
   rpc GetCars    (Empty)             returns (GetCarsResponse);
   rpc CreateCar  (CreateCarRequest)  returns (CreateCarResponse);

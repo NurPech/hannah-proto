@@ -282,6 +282,57 @@ message DeleteBleTagRequest {
   int32 id = 1;
 }
 
+// --- Presence Sources (Admin-UI, hannah#294 — presence fusion) ---
+//
+// Rohsignal-Quelle für die Presence-Fusion in Core (siehe hannah#294): pro User
+// mehrere Quellen (WLAN-State via source_type=iobroker_state, BLE-Tag via
+// source_type=ble_tag), jeweils mit eigener Konfidenz pro Richtung, weil die
+// Zuverlässigkeit einer Quelle richtungsabhängig unterschiedlich ist (z.B. WLAN:
+// verbunden ~sicher home, getrennt nur "vielleicht away"; BLE: umgekehrt).
+
+message PresenceSource {
+  int32  id               = 1;
+  int32  user_id          = 2;
+  string source_type      = 3;  // "iobroker_state" | "ble_tag"
+  string reference        = 4;  // state_id (iobroker_state) bzw. BleTag-Referenz (ble_tag)
+  float  home_confidence  = 5;  // 0.0-1.0
+  float  away_confidence  = 6;  // 0.0-1.0
+  bool   enabled          = 7;
+}
+
+message GetPresenceSourcesResponse {
+  repeated PresenceSource presence_sources = 1;
+}
+
+message CreatePresenceSourceRequest {
+  int32  user_id          = 1;
+  string source_type      = 2;
+  string reference        = 3;
+  float  home_confidence  = 4;
+  float  away_confidence  = 5;
+  bool   enabled          = 6;
+}
+
+message CreatePresenceSourceResponse {
+  bool   ok      = 1;
+  int32  id      = 2;
+  string message = 3;
+}
+
+message UpdatePresenceSourceRequest {
+  int32  id               = 1;
+  int32  user_id          = 2;
+  string source_type      = 3;
+  string reference        = 4;
+  float  home_confidence  = 5;
+  float  away_confidence  = 6;
+  bool   enabled          = 7;
+}
+
+message DeletePresenceSourceRequest {
+  int32 id = 1;
+}
+
 // --- Cars (Admin-UI, #115) ---
 //
 // Konfiguration eines getrackten Autos — unabhängig von CarStateProto weiter unten,
