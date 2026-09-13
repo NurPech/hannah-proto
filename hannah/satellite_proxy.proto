@@ -43,16 +43,14 @@ message PlayAudioCommand {
 
 // Sent by the proxy when a satellite has finished recording an utterance.
 message SubmitSatelliteAudioRequest {
-  option (compat_version) = 2;
+  option (compat_version) = 3;
 
   string device_id    = 1;  // satellite device name
   string room         = 2;  // room name (from proxy registration / config)
   bytes  audio_pcm    = 3;  // raw PCM, 16-bit signed mono, 16000 Hz
   int32  sample_rate  = 4;  // sample rate of the audio (typically 16000)
-  // Deprecated: Hannah Core now resolves the speaker itself via its own
-  // VoiceID client, independent of proxy connectivity (hannah#210). The
-  // proxy no longer populates this field and Core no longer reads it.
-  string speaker_user_id = 5 [deprecated = true];
+  reserved 5;
+  reserved "speaker_user_id";  // removed: Hannah Core resolves the speaker itself via its own VoiceID client (hannah#210)
 }
 
 message SubmitSatelliteAudioResponse {
