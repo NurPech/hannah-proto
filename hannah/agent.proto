@@ -111,12 +111,39 @@ message AgentWatchMore {
   repeated string state_ids = 1;
 }
 
+// Which single presence aspect to set. The residents adapter's presence.{away,home,night}
+// datapoints guard their own cross-consistency (e.g. setting "away" true automatically
+// flips "home" false) — Hannah only needs to name the aspect it actually has an opinion
+// about, instead of writing the whole combined presence.state value (hannah#309, root
+// cause of hannah#299: two independent Hannah-side decisions, home/away presence fusion
+// and an explicit asleep/awake trigger, collapsed onto one write and could clobber each
+// other's information). SET_AWAKE has no direct presence.state equivalent — it only
+// clears "night" and leaves "home" untouched, regardless of its current value.
+enum ResidentPresenceAction {
+  RESIDENT_PRESENCE_ACTION_UNSPECIFIED = 0;
+  AWAY   = 1;
+  HOME   = 2;
+  ASLEEP = 3;
+  AWAKE  = 4;
+}
+
 // Hannah instructs the adapter to set a resident's presence state in the residents adapter.
 // type determines whether the target path is .roomie./.guest./.pet.
 message AgentSetResident {
+  option (compat_version) = 2;
+
   string resident_id    = 1;  // e.g. "leonie", "hannah"
-  int32  presence_state = 2;  // residents adapter presence value (0=absent, 1=home, …)
+  // Legacy absolute presence value (0=absent, 1=home, 2=night) — writes the combined
+  // presence.state, which cross-clobbers whichever of home/away/night Hannah didn't
+  // intend to change. Superseded by `action`; kept only for adapters older than
+  // compat_version 2, which don't understand `action` yet and ignore it entirely.
+  // Senders should populate both until those adapters are no longer in use.
+  int32  presence_state = 2 [deprecated = true];
   ResidentType type     = 3;
+  // Preferred over `presence_state`: sets only the single presence.{away,home,night}
+  // flag this action corresponds to, letting the residents adapter's own consistency
+  // guard handle the rest.
+  ResidentPresenceAction action = 4;
 }
 
 // Hannah instructs the adapter to set a resident's mood — separate command from
