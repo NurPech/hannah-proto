@@ -22,6 +22,7 @@ import "hannah/automation.proto";
 import "hannah/activity_log.proto";
 import "hannah/messages.proto";
 import "hannah/channel.proto";
+import "hannah/infrastructure.proto";
 
 // ============================================================
 //  Hannah gRPC Service
@@ -239,6 +240,17 @@ service HannahService {
   rpc ChannelConnect (stream ChannelMessage) returns (stream ChannelCommand);
   // Currently connected channel adapters and whether they support account linking.
   rpc GetChannels    (Empty)                 returns (GetChannelsResponse);
+
+  // --- Infrastructure ---
+  // Service discovery for components: Hannah sends an InfrastructureSnapshot of all
+  // currently available infrastructure services (e.g. the log collector) right after
+  // subscribing, followed by ServiceAvailable/ServiceUnavailable deltas.
+  rpc SubscribeInfrastructure (InfrastructureFilter) returns (stream InfrastructureMessage);
+  // Bidirectional stream for the log collector. The collector sends a LogCollectorRegister
+  // and keeps the stream open; it counts as available exactly as long as the stream is
+  // open, and a second registration for the same instance replaces the first (same
+  // semantics as ChannelConnect). Not related to CollectorConnect (wakeword capture).
+  rpc LogCollectorConnect (stream LogCollectorMessage) returns (stream LogCollectorCommand);
 
   // --- Activity Log ---
   // Read access to the Activity Log (#220) for external consumers (WebUI). List returns

@@ -1,0 +1,82 @@
+syntax = "proto3";
+
+package hannah;
+
+option go_package = "github.com/NurPech/hannah-proto-go;hannahproto";
+
+// Infrastructure services that Hannah Core announces to all connected components
+// (service discovery). Typed on purpose — a new kind of service gets a new enum value,
+// a fundamentally new use case gets its own oneof branch, never a generic key/value bag.
+enum ServiceKind {
+  SERVICE_KIND_UNSPECIFIED   = 0;
+  SERVICE_KIND_LOG_COLLECTOR = 1;
+}
+
+// Where a currently available infrastructure service can be reached.
+message ServiceEndpoint {
+  ServiceKind kind     = 1;
+  string      instance = 2;
+  string      host     = 3;
+  int32       port     = 4;
+  string      version  = 5;  // informational
+}
+
+// --- SubscribeInfrastructure (Hannah Core → components) ---
+
+// Which kinds of service the subscriber cares about. Empty = all kinds.
+message InfrastructureFilter {
+  repeated ServiceKind kinds = 1;
+}
+
+message InfrastructureMessage {
+  oneof payload {
+    InfrastructureSnapshot snapshot    = 1;  // sent once, right after subscribing
+    ServiceAvailable       available   = 2;  // live delta
+    ServiceUnavailable     unavailable = 3;  // live delta
+  }
+}
+
+// All matching services available right now. Sent once per subscription, before any
+// delta — a subscriber replaces its whole state with it, so a reconnect never keeps a
+// service that disappeared while it was offline.
+message InfrastructureSnapshot {
+  repeated ServiceEndpoint services = 1;
+}
+
+// A service became available, or an available one re-registered (e.g. new address).
+message ServiceAvailable {
+  ServiceEndpoint service = 1;
+}
+
+// A service is no longer available (its registration stream ended or was displaced).
+message ServiceUnavailable {
+  ServiceKind kind     = 1;
+  string      instance = 2;
+}
+
+// --- LogCollectorConnect (log collector → Hannah Core) ---
+// Not to be confused with CollectorConnect, which is the wakeword training data collector.
+
+// Sent by the log collector over the LogCollectorConnect stream.
+message LogCollectorMessage {
+  oneof payload {
+    LogCollectorRegister register = 1;  // sent once, right after connecting
+  }
+}
+
+// A second log collector registering with the same instance replaces the first.
+message LogCollectorRegister {
+  string instance = 1;
+  string host     = 2;  // empty = Hannah Core uses the stream's peer address
+  int32  port     = 3;
+  string version  = 4;  // informational
+}
+
+// Sent by Hannah Core over the LogCollectorConnect stream.
+message LogCollectorCommand {
+  oneof command {
+    LogCollectorRegistered registered = 1;  // sent once, right after register
+  }
+}
+
+message LogCollectorRegistered {}

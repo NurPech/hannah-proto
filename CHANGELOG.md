@@ -4,8 +4,10 @@
     ## **WORK IN PROGRESS**
 -->
 
-
 ## **WORK IN PROGRESS**
+
+## 4.4.0 (2026-09-23)
+* Added: `hannah/infrastructure.proto` — service discovery for Hannah components. `SubscribeInfrastructure` on `HannahService` streams an `InfrastructureSnapshot` of all currently available infrastructure services right after subscribing, followed by `ServiceAvailable`/`ServiceUnavailable` deltas (optionally filtered by `ServiceKind`) — same snapshot-then-deltas model as `AutomationConnect`, so a reconnecting component never keeps a service that disappeared while it was offline. First service kind is the log collector (`SERVICE_KIND_LOG_COLLECTOR`), which registers via the new `LogCollectorConnect` bidirectional stream (`LogCollectorRegister`: instance, host, port, version; empty host = Core uses the stream's peer address) with the same semantics as `ChannelConnect`: available exactly as long as the stream is open, a second registration for the same instance replaces the first. Named `LogCollector*` on purpose to avoid confusion with the existing `CollectorConnect` (wakeword capture). `ServiceKind` starts at `SERVICE_KIND_UNSPECIFIED = 0`. Purely additive, `PROTO_VERSION` unchanged. `hannah-proto#9`, prep for `hannah#335`
 
 ## 4.3.0 (2026-09-23)
 * Added: `hannah/channel.proto` — `ChannelConnect` bidirectional stream and `GetChannels` RPC on `HannahService`, letting channel adapters (e.g. the Telegram service) register with Hannah Core (`ChannelRegister`: service key, display name, optional `link_url_template`) so Core knows which services are currently running and which of them can link accounts. Modeled on `AutomationConnect`; a second registration for the same service replaces the first. Link tokens are redeemed over the same stream (`RedeemLinkToken` → `RedeemLinkTokenResult`, correlated via `request_id`), so the service is implied by the registration instead of being passed per call. `RedeemResult` starts at `REDEEM_RESULT_UNSPECIFIED = 0` so an unset field never reads as success.
