@@ -1,0 +1,105 @@
+syntax = "proto3";
+
+package hannah;
+
+option go_package = "github.com/NurPech/hannah-proto-go;hannahproto";
+
+import "hannah/shared.proto";
+
+// ============================================================
+//  Log Service
+//
+//  Served by the log collector, not by Hannah Core — components push their
+//  log lines to it directly, and clients (e.g. the WebUI) export an archive
+//  from it. Where the collector can be reached is announced via
+//  HannahService.SubscribeInfrastructure (SERVICE_KIND_LOG_COLLECTOR).
+//
+//  Deliberately small: ingest, bounded storage, export. No query or search API.
+// ============================================================
+
+service LogService {
+  // Component → collector. First message is a ShipHello, then any number of
+  // entries/gaps. The stream stays open for as long as the component runs.
+  rpc Ship       (stream ShipMessage) returns (ShipAck);
+  // Which sources the collector currently holds logs for, and how far back.
+  rpc GetSources (Empty)              returns (GetSourcesResponse);
+  // Archive of the requested logs (tar.gz: one file per source plus a manifest),
+  // split into chunks — the client concatenates ExportChunk.data in order.
+  rpc Export     (ExportRequest)      returns (stream ExportChunk);
+}
+
+message ShipMessage {
+  oneof payload {
+    ShipHello hello = 1;  // exactly once, as the first message
+    LogEntry  entry = 2;
+    LogGap    gap   = 3;  // the component's buffer overflowed, entries were dropped
+  }
+}
+
+// Identifies the source of all entries on this stream.
+message ShipHello {
+  string component = 1;  // e.g. "core", "telegram", "voiceid"
+  string instance  = 2;  // distinguishes several instances of the same component
+  string version   = 3;  // component version, shown in the export manifest
+}
+
+message LogEntry {
+  int64       timestamp_ms = 1;  // Unix ms at the time of logging in the component, not of receipt
+  LogLevel    level        = 2;
+  string      logger       = 3;  // e.g. the Python logger name
+  string      message      = 4;  // secrets are filtered out by the component before sending
+  LogCategory category     = 5;
+}
+
+// Entries the component had to drop (buffer overflow while the collector was
+// unreachable). Listed in the export manifest so gaps are visible.
+message LogGap {
+  int64 dropped = 1;
+  int64 from_ms = 2;
+  int64 to_ms   = 3;
+}
+
+message ShipAck {
+  int64 accepted = 1;  // number of entries stored from this stream
+}
+
+message LogSource {
+  string component = 1;
+  string instance  = 2;
+  string version   = 3;  // from the most recent ShipHello
+  int64  oldest_ms = 4;
+  int64  newest_ms = 5;
+  int64  entries   = 6;
+}
+
+message GetSourcesResponse {
+  repeated LogSource sources = 1;
+}
+
+message ExportRequest {
+  int64                since_ms           = 1;
+  int64                until_ms           = 2;  // 0 = now
+  repeated string      components         = 3;  // empty = all
+  repeated LogCategory exclude_categories = 4;
+}
+
+message ExportChunk {
+  bytes data = 1;
+}
+
+enum LogLevel {
+  LOG_LEVEL_UNSPECIFIED = 0;
+  LOG_LEVEL_DEBUG       = 1;
+  LOG_LEVEL_INFO        = 2;
+  LOG_LEVEL_WARNING     = 3;
+  LOG_LEVEL_ERROR       = 4;
+  LOG_LEVEL_CRITICAL    = 5;
+}
+
+// Lets an export leave out sensitive content (e.g. before posting it in a forum).
+enum LogCategory {
+  LOG_CATEGORY_UNSPECIFIED = 0;
+  LOG_CATEGORY_GENERAL     = 1;
+  LOG_CATEGORY_TRANSCRIPT  = 2;  // speech transcripts / user utterances
+  LOG_CATEGORY_METADATA    = 3;  // room/device names, presence and similar
+}
