@@ -73,6 +73,21 @@ message UnlinkAccountRequest {
   int32  requestor_id  = 4;
 }
 
+// Issue a one-time link token for a user and service (e.g. Telegram deep link).
+// Rejected if no adapter that supports linking is connected for the service.
+message CreateLinkTokenRequest {
+  int32  user_id = 1;
+  string service = 2;
+}
+
+message CreateLinkTokenResponse {
+  bool   ok         = 1;
+  string message    = 2;
+  string token      = 3;
+  string link_url   = 4;  // adapter's link_url_template with {token} filled in
+  int64  expires_at = 5;  // Unix timestamp (seconds)
+}
+
 message SetTrustLevelRequest {
   int32  user_id    = 1;
   int32  level      = 2;  // clamped to [0, 10]

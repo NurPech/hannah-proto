@@ -4,7 +4,12 @@
     ## **WORK IN PROGRESS**
 -->
 
+
 ## **WORK IN PROGRESS**
+
+## 4.3.0 (2026-09-23)
+* Added: `hannah/channel.proto` — `ChannelConnect` bidirectional stream and `GetChannels` RPC on `HannahService`, letting channel adapters (e.g. the Telegram service) register with Hannah Core (`ChannelRegister`: service key, display name, optional `link_url_template`) so Core knows which services are currently running and which of them can link accounts. Modeled on `AutomationConnect`; a second registration for the same service replaces the first. Link tokens are redeemed over the same stream (`RedeemLinkToken` → `RedeemLinkTokenResult`, correlated via `request_id`), so the service is implied by the registration instead of being passed per call. `RedeemResult` starts at `REDEEM_RESULT_UNSPECIFIED = 0` so an unset field never reads as success.
+* Added: `hannah/user_registry.proto` — `CreateLinkTokenRequest`/`Response` plus a `CreateLinkToken` RPC on `HannahService`, issuing a one-time token and the ready-to-use link (e.g. `https://t.me/<bot>?start=<token>`) for a user and service. Replaces the Telegram Login Widget flow, which requires a BotFather domain and HTTPS on the WebUI side. Purely additive, `PROTO_VERSION` unchanged. `hannah-proto#8`, prep for `hannah#334`
 
 ## 4.2.1 (2026-09-19)
 * Fixed: `python/pyproject.toml`'s `grpcio` floor (`>=1.83.0`) was lower than what 4.2.0's actual gencode requires at import time (`>=1.84.0`) — same bug class as 0.3.9/0.5.6, again caused by `.gitlab-ci.yml`'s `pip install grpcio-tools` being unpinned. This time also pinned `grpcio-tools==1.84.0` in CI instead of just raising the floor, so codegen is deterministic and future `grpcio-tools` releases can no longer silently outrun the declared floor — the pin and the floor are now bumped together, deliberately.

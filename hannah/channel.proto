@@ -1,0 +1,70 @@
+syntax = "proto3";
+
+package hannah;
+
+option go_package = "github.com/NurPech/hannah-proto-go;hannahproto";
+
+// Sent by a channel adapter (e.g. the Telegram service) over the ChannelConnect stream.
+message ChannelMessage {
+  oneof payload {
+    ChannelRegister register = 1;  // sent once, right after connecting
+    RedeemLinkToken redeem   = 2;  // a user presented a link token to the adapter
+  }
+}
+
+// Identifies which service this adapter represents. A second adapter registering
+// for the same service replaces the first one.
+message ChannelRegister {
+  string service           = 1;  // e.g. "telegram" — same key as LinkAccountRequest.service
+  string display_name      = 2;  // e.g. "Telegram"
+  // e.g. "https://t.me/HannahBot?start={token}". Empty = service cannot link accounts.
+  string link_url_template = 3;
+  string version           = 4;  // adapter version, informational
+}
+
+// Redeem a link token issued by CreateLinkToken. The service is implied by the
+// registration of the stream it arrives on.
+message RedeemLinkToken {
+  string request_id       = 1;  // chosen by the adapter, echoed in RedeemLinkTokenResult
+  string token            = 2;
+  string account_id       = 3;  // e.g. Telegram user ID
+  string provider_payload = 4;  // optional JSON, same semantics as LinkAccountRequest.provider_payload
+}
+
+// Sent by Hannah Core over the ChannelConnect stream.
+message ChannelCommand {
+  oneof command {
+    ChannelRegistered     registered    = 1;  // sent once, right after register
+    RedeemLinkTokenResult redeem_result = 2;  // answer to RedeemLinkToken
+  }
+}
+
+message ChannelRegistered {}
+
+message RedeemLinkTokenResult {
+  string       request_id   = 1;  // from RedeemLinkToken
+  RedeemResult result       = 2;
+  int32        user_id      = 3;  // set on REDEEM_OK
+  string       display_name = 4;  // set on REDEEM_OK
+}
+
+enum RedeemResult {
+  REDEEM_RESULT_UNSPECIFIED       = 0;
+  REDEEM_OK                       = 1;
+  REDEEM_UNKNOWN_TOKEN            = 2;
+  REDEEM_EXPIRED                  = 3;
+  REDEEM_ACCOUNT_LINKED_ELSEWHERE = 4;  // account_id already linked to another user
+  REDEEM_ALREADY_LINKED           = 5;  // user already has an account linked for this service
+}
+
+// A currently connected channel adapter.
+message ChannelInfo {
+  string service         = 1;
+  string display_name    = 2;
+  bool   supports_link   = 3;  // adapter sent a link_url_template
+  int64  connected_since = 4;  // Unix timestamp (seconds)
+}
+
+message GetChannelsResponse {
+  repeated ChannelInfo channels = 1;
+}

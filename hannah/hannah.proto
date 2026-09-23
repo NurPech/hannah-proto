@@ -21,6 +21,7 @@ import "hannah/timer_admin.proto";
 import "hannah/automation.proto";
 import "hannah/activity_log.proto";
 import "hannah/messages.proto";
+import "hannah/channel.proto";
 
 // ============================================================
 //  Hannah gRPC Service
@@ -42,6 +43,9 @@ service HannahService {
   rpc GetUser       (GetUserRequest)       returns (UserResponse);
   rpc LinkAccount   (LinkAccountRequest)   returns (StatusResponse);
   rpc UnlinkAccount (UnlinkAccountRequest) returns (StatusResponse);
+  // One-time token for linking an account via the service's adapter (e.g. Telegram deep link).
+  // Redeemed by the adapter over ChannelConnect.
+  rpc CreateLinkToken (CreateLinkTokenRequest) returns (CreateLinkTokenResponse);
   rpc SetTrustLevel       (SetTrustLevelRequest)       returns (StatusResponse);
   rpc SetSystemMessages   (SetSystemMessagesRequest)   returns (StatusResponse);
   // Enable/disable an automation service (e.g. "telegram_autoresponder") for a user.
@@ -226,6 +230,15 @@ service HannahService {
   // Chosen over SubscribeEvents so a reconnecting service always gets a fresh snapshot
   // instead of missing state changes that happened while it was offline.
   rpc AutomationConnect (stream AutomationMessage) returns (stream AutomationCommand);
+
+  // --- Channels ---
+  // Bidirectional stream for channel adapters (e.g. the Telegram service). The adapter
+  // sends a ChannelRegister and keeps the stream open; it counts as available exactly as
+  // long as the stream is open. A second registration for the same service replaces the
+  // first. Link tokens (CreateLinkToken) are redeemed over this stream.
+  rpc ChannelConnect (stream ChannelMessage) returns (stream ChannelCommand);
+  // Currently connected channel adapters and whether they support account linking.
+  rpc GetChannels    (Empty)                 returns (GetChannelsResponse);
 
   // --- Activity Log ---
   // Read access to the Activity Log (#220) for external consumers (WebUI). List returns
