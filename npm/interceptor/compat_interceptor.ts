@@ -28,10 +28,11 @@ import { DEFAULT_COMPAT_VERSION, REQUIRED_COMPAT_VERSIONS } from "./compat_versi
 export const COMPAT_VERSION_METADATA_KEY = "x-compat-version";
 export { DEFAULT_COMPAT_VERSION };
 
-/** `methodName` is the bare RPC name (e.g. "SubmitText"), matching the keys
- * gen-compat-versions.js writes into REQUIRED_COMPAT_VERSIONS. */
-function getRequiredCompatVersion(methodName: string): number {
-  return REQUIRED_COMPAT_VERSIONS[methodName] ?? DEFAULT_COMPAT_VERSION;
+/** `methodPath` is the full gRPC path (e.g. "/hannah.v1.HannahService/SubmitText"),
+ * matching the keys gen-compat-versions.js writes into REQUIRED_COMPAT_VERSIONS —
+ * the bare name would be ambiguous between hannah and hannah.v1. */
+function getRequiredCompatVersion(methodPath: string): number {
+  return REQUIRED_COMPAT_VERSIONS[methodPath] ?? DEFAULT_COMPAT_VERSION;
 }
 
 /**
@@ -45,8 +46,7 @@ export const compatVersionInterceptor: Interceptor = (
   options: InterceptorOptions,
   nextCall: NextCall,
 ) => {
-  const methodName = options.method_definition.path.split("/").pop() ?? "";
-  const required = getRequiredCompatVersion(methodName);
+  const required = getRequiredCompatVersion(options.method_definition.path);
 
   return new InterceptingCall(nextCall(options), {
     start(metadata: Metadata, listener: Listener, next) {

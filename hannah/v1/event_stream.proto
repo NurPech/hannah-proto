@@ -1,0 +1,49 @@
+syntax = "proto3";
+
+package hannah.v1;
+
+option go_package = "github.com/NurPech/hannah-proto-go/hannahv1;hannahv1";
+
+import "hannah/v1/car_state.proto";
+
+message EventFilter {
+  // If empty, subscribe to all event types.
+  repeated string event_types = 1;
+}
+
+message HannahEvent {
+  string event_type = 1;   // "car.parked" | "resident.arrived" | "resident.departed" | "system.notification" | "satellite.firmware"
+  string timestamp  = 2;   // ISO 8601 UTC
+
+  oneof payload {
+    CarStateProto            car_state            = 10;
+    ResidentEventProto       resident_event       = 11;
+    SystemNotificationEvent  system_notification  = 12;
+    FirmwareEventProto       firmware_event       = 13;
+  }
+}
+
+message SystemNotificationEvent {
+  string text = 1;  // LLM-reformulierter Benachrichtigungstext
+}
+
+message FirmwareEventProto {
+  string device  = 1;
+  string version = 2;
+  bool update_available = 3;
+  optional string new_version   = 4;
+}
+
+message TriggerFirmwareUpdateRequest {
+  string device = 1;
+}
+
+message TriggerSatelliteRestartRequest {
+  string device = 1;
+}
+
+message ResidentEventProto {
+  string roomie_id    = 1;
+  string display_name = 2;
+  string event        = 3;   // "arrived" | "departed"
+}

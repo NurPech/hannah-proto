@@ -1,0 +1,267 @@
+syntax = "proto3";
+
+package hannah.v1;
+
+option go_package = "github.com/NurPech/hannah-proto-go/hannahv1;hannahv1";
+
+import "hannah/v1/shared.proto";
+import "hannah/v1/user_registry.proto";
+import "hannah/v1/control.proto";
+import "hannah/v1/satellite.proto";
+import "hannah/v1/car_state.proto";
+import "hannah/v1/event_stream.proto";
+import "hannah/v1/satellite_proxy.proto";
+import "hannah/v1/device_control_menu.proto";
+import "hannah/v1/satellite_provisioning.proto";
+import "hannah/v1/speaker_enrollment.proto";
+import "hannah/v1/agent.proto";
+import "hannah/v1/wakeword_capture.proto";
+import "hannah/v1/timer_service.proto";
+import "hannah/v1/timer_admin.proto";
+import "hannah/v1/automation.proto";
+import "hannah/v1/activity_log.proto";
+import "hannah/v1/messages.proto";
+import "hannah/v1/channel.proto";
+import "hannah/v1/infrastructure.proto";
+
+// ============================================================
+//  Hannah gRPC Service
+//
+//  Allows external services (Telegram bot, web UI, etc.) to:
+//    - query and manage the user registry
+//    - submit text commands and receive answers
+//    - trigger TTS announcements on satellites
+//    - inspect registered satellites
+//    - query live car state
+//    - subscribe to a stream of Hannah events (car parked, resident arrived, …)
+//    - register as a satellite audio proxy (Go gRPC proxy replaces UDP server)
+// ============================================================
+
+service HannahService {
+
+  // --- User Registry ---
+  rpc GetUsers      (GetUsersRequest)      returns (GetUsersResponse);
+  rpc GetUser       (GetUserRequest)       returns (UserResponse);
+  rpc LinkAccount   (LinkAccountRequest)   returns (StatusResponse);
+  rpc UnlinkAccount (UnlinkAccountRequest) returns (StatusResponse);
+  // One-time token for linking an account via the service's adapter (e.g. Telegram deep link).
+  // Redeemed by the adapter over ChannelConnect.
+  rpc CreateLinkToken (CreateLinkTokenRequest) returns (CreateLinkTokenResponse);
+  rpc SetTrustLevel       (SetTrustLevelRequest)       returns (StatusResponse);
+  rpc SetSystemMessages   (SetSystemMessagesRequest)   returns (StatusResponse);
+  // Enable/disable an automation service (e.g. "telegram_autoresponder") for a user.
+  // Pushes a live update to any connected AutomationConnect stream registered for it.
+  rpc SetAutomation       (SetAutomationRequest)       returns (StatusResponse);
+  rpc Login               (LoginRequest)               returns (UserResponse);
+
+  // --- User-Verwaltung (Admin-UI, #27 Phase 6) ---
+  rpc CreateUser   (CreateUserRequest) returns (CreateUserResponse);
+  rpc UpdateUser   (UpdateUserRequest) returns (StatusResponse);
+  rpc DeleteUser   (DeleteUserRequest) returns (StatusResponse);
+  // Residents (Roomies/Guests/Pets) aus dem ioBroker-Adapter-Cache — fürs "Resident verknüpfen"-Dropdown.
+  rpc GetResidents (Empty)            returns (GetResidentsResponse);
+
+  // --- Device Control Menu ---
+  // Returns all rooms and devices with current state — for building control menus.
+  rpc GetDevices    (Empty)                returns (GetDevicesResponse);
+  // Directly set a device state (bypasses NLU). Trust level check is done by the caller.
+  rpc ControlDevice (ControlDeviceRequest) returns (StatusResponse);
+
+  // --- Control ---
+  // Submit a plain-text command; Hannah processes it through NLU and returns the answer.
+  rpc SubmitText    (SubmitTextRequest)    returns (SubmitTextResponse);
+  // Submit a voice message (OGG/Opus bytes); Hannah does STT → NLU → TTS and returns the result.
+  rpc SubmitVoice   (SubmitVoiceRequest)   returns (SubmitVoiceResponse);
+  // Send a TTS announcement to one satellite or all ("all").
+  rpc Announce      (AnnounceRequest)      returns (StatusResponse);
+  // Send a notification from ioBroker to Hannah. Returns ok=true when queued.
+  // direct=true: skip LLM reformulation. severity: "alert"|"notify"|"info".
+  rpc Notify        (AgentNotification)    returns (StatusResponse);
+  // List all known satellites (DB + live status merged).
+  rpc GetSatellites (Empty)               returns (GetSatellitesResponse);
+
+  // --- Satellites (Admin-UI, #27 Phase 2) ---
+  rpc SetSatelliteRoom        (SetSatelliteRoomRequest)        returns (StatusResponse);
+  rpc SetSatelliteDisplayName (SetSatelliteDisplayNameRequest) returns (StatusResponse);
+  // Assign a satellite to a Person (User), independent of its room. #31
+  rpc SetSatelliteOwner       (SetSatelliteOwnerRequest)       returns (StatusResponse);
+  // Toggle whether the satellite's mic reopens after a Smalltalk answer instead of
+  // waiting for wake-word/PTT again (silence-timeout lives in the satellite firmware). #158
+  rpc SetSatelliteSmalltalkFollowup (SetSatelliteSmalltalkFollowupRequest) returns (StatusResponse);
+  // Delete existing satellite
+  rpc DeleteSatellite (DeleteSatelliteRequest) returns (StatusResponse);
+
+  // --- Rooms/Groups (Admin-UI, #27 Phase 1) ---
+  rpc GetRooms      (Empty)                returns (GetRoomsResponse);
+  rpc GetGroups     (Empty)                returns (GetGroupsResponse);
+  rpc CreateGroup   (CreateGroupRequest)   returns (StatusResponse);
+  rpc UpdateGroup   (UpdateGroupRequest)   returns (StatusResponse);
+  rpc DeleteGroup   (DeleteGroupRequest)   returns (StatusResponse);
+  rpc SetGroupSatellites (SetGroupSatellitesRequest) returns (StatusResponse);
+
+  // --- Triggers (Admin-UI, #28) ---
+  rpc GetTriggers   (Empty)                returns (GetTriggersResponse);
+  rpc CreateTrigger (CreateTriggerRequest) returns (StatusResponse);
+  rpc UpdateTrigger (UpdateTriggerRequest) returns (StatusResponse);
+  rpc DeleteTrigger (DeleteTriggerRequest) returns (StatusResponse);
+
+  // --- Alarms (Wecker, #4) ---
+  rpc GetAlarms    (Empty)              returns (GetAlarmsResponse);
+  rpc CreateAlarm  (CreateAlarmRequest) returns (CreateAlarmResponse);
+  rpc UpdateAlarm  (UpdateAlarmRequest) returns (StatusResponse);
+  rpc DeleteAlarm  (DeleteAlarmRequest) returns (StatusResponse);
+
+  // --- Settings (Admin-UI, #27 Phase 5) ---
+  // CreateSetting/DeleteSetting wurden mit #115 entfernt: ble.tags/cars haben jetzt
+  // eigene Modelle+CRUD (unten), nlu/iobroker.state_names/llm.system_prompt sind immer
+  // vorab bekannt/geseedet — es gibt keinen verbleibenden Bedarf, neue Settings anzulegen.
+  rpc GetSettings   (Empty)                returns (GetSettingsResponse);
+  rpc UpdateConfig  (UpdateConfigRequest)  returns (StatusResponse);
+
+  // --- BLE Tags (Admin-UI, #115 — eigenes Modell statt Settings-JSON-Blob) ---
+  rpc GetBleTags    (Empty)               returns (GetBleTagsResponse);
+  rpc CreateBleTag  (CreateBleTagRequest) returns (CreateBleTagResponse);
+  rpc UpdateBleTag  (UpdateBleTagRequest) returns (StatusResponse);
+  rpc DeleteBleTag  (DeleteBleTagRequest) returns (StatusResponse);
+
+  // --- Presence Sources (Admin-UI, hannah#294 — presence fusion) ---
+  rpc GetPresenceSources    (Empty)                        returns (GetPresenceSourcesResponse);
+  rpc CreatePresenceSource  (CreatePresenceSourceRequest)   returns (CreatePresenceSourceResponse);
+  rpc UpdatePresenceSource  (UpdatePresenceSourceRequest)   returns (StatusResponse);
+  rpc DeletePresenceSource  (DeletePresenceSourceRequest)   returns (StatusResponse);
+
+  // --- Cars (Admin-UI, #115 — eigenes Modell + user_to_car-Pivot statt Settings-JSON-Blob) ---
+  rpc GetCars    (Empty)             returns (GetCarsResponse);
+  rpc CreateCar  (CreateCarRequest)  returns (CreateCarResponse);
+  rpc UpdateCar  (UpdateCarRequest)  returns (StatusResponse);
+  rpc DeleteCar  (DeleteCarRequest)  returns (StatusResponse);
+
+  // --- Car state (Live-VW-Connect-Status, unabhängig von der Car-Konfiguration oben) ---
+  // Returns the current cached car state (available=false if no data received yet).
+  rpc GetCarState      (Empty)            returns (CarStateResponse);
+  // Returns all tracked car states (one per configured car).
+  rpc GetAllCarStates  (Empty)            returns (GetAllCarStatesResponse);
+
+  // --- Event stream ---
+  // Opens a server-side stream; Hannah pushes events as they occur.
+  // Pass event_types to filter (empty = all events).
+  // Known event types: "car.parked", "resident.arrived", "resident.departed", "satellite.firmware"
+  rpc SubscribeEvents (EventFilter)       returns (stream HannahEvent);
+
+  // --- Firmware Manager ---
+  // Trigger an immediate OTA update for a satellite (bypasses residents check).
+  rpc TriggerFirmwareUpdate (TriggerFirmwareUpdateRequest) returns (StatusResponse);
+  // Trigger an ordered remote restart (esp_restart()) of a satellite over MQTT.
+  // Diagnostic/rejuvenation tool for suspected resource exhaustion (heap fragmentation
+  // after long uptime) — works even when the satellite's OTA/webserver no longer
+  // respond, since MQTT stays alive in that failure mode.
+  rpc TriggerSatelliteRestart (TriggerSatelliteRestartRequest) returns (StatusResponse);
+
+  // --- Wakeword Capture ---
+  // Put a satellite in audio-capture mode for wakeword training data collection.
+  // While captured: wakeword detection is suspended, speaker is muted, DND is active.
+  // Hannah relays raw PCM chunks from the satellite to the collector via StreamSatelliteAudio.
+  // The stream stays open until the collector disconnects; Hannah then auto-releases the satellite.
+  rpc RequestSatelliteCapture (SatelliteCaptureRequest) returns (SatelliteCaptureResponse);
+  rpc ReleaseSatelliteCapture (SatelliteCaptureRequest) returns (StatusResponse);
+  rpc StreamSatelliteAudio    (SatelliteCaptureRequest) returns (stream SatelliteAudioChunk);
+  // Play a plink sound on the satellite, then hold virtual PTT for record_duration seconds.
+  // Returns after PTT is released — Collector calls this in a loop for guided hey-hannah collection.
+  rpc TriggerPlink (TriggerPlinkRequest) returns (StatusResponse);
+  // Bidirectional stream between the Collector and Hannah Core, analogous to TimerConnect.
+  // The Collector initiates and holds the connection open; Hannah pushes CaptureCommands
+  // down to start/stop satellite captures instead of the Collector polling for them.
+  rpc CollectorConnect (stream CollectorMessage) returns (stream CaptureCommand);
+  // Unary trigger for external callers (e.g. WebUI) that can't hold a CollectorConnect
+  // stream themselves — Hannah relays the command over its own CollectorConnect stream
+  // to the connected Collector. Fails with ok=false if no Collector is connected.
+  rpc TriggerCollectorCapture (CaptureCommand) returns (StatusResponse);
+
+  // --- Satellite Proxy (Go gRPC proxy) ---
+  // Bidirectional keepalive stream. Proxy sends heartbeats; Hannah sends TTS
+  // audio commands back (for announcements). While this stream is open, Hannah
+  // disables its own UDP server. If the stream drops, Hannah re-enables UDP.
+  rpc RegisterProxy       (stream ProxyHeartbeat)              returns (stream ProxyCommand);
+  // Submit a complete satellite audio session for processing.
+  // Hannah runs the full pipeline (STT → NLU → TTS → MQTT status) and returns
+  // the result so the proxy can play TTS audio back to the satellite.
+  rpc SubmitSatelliteAudio(SubmitSatelliteAudioRequest)        returns (SubmitSatelliteAudioResponse);
+  // Notify Hannah that a satellite registered or disconnected via the proxy.
+  // Hannah updates its room registry (hannah/rooms MQTT) immediately.
+  rpc NotifySatelliteRegistered(SatelliteRegistration)         returns (StatusResponse);
+  rpc NotifySatelliteGone      (SatelliteRegistration)         returns (StatusResponse);
+
+  // --- Satellite Provisioning ---
+  // Called by the ioBroker adapter before WebFlash to pre-register a seed + display name + room.
+  // When the satellite first connects with that seed, Hannah links serial → pre-config and clears the seed.
+  rpc ProvisionSatellite  (ProvisionSatelliteRequest)          returns (StatusResponse);
+
+  // --- Speaker Enrollment ---
+  // Trigger a guided voice-enrollment dialog for user_id at satellite_id (hannah#8);
+  // Core orchestrates the dialog itself. EnrollVoiceprint stays available as the
+  // low-level "store one already-captured sample" call — kept for now (additive,
+  // no hard cut) until hannah#8 confirms Core no longer needs it as an external RPC.
+  rpc StartVoiceEnrollment (StartVoiceEnrollmentRequest)       returns (StatusResponse);
+  rpc EnrollVoiceprint     (EnrollVoiceprintRequest)           returns (StatusResponse);
+
+  // --- Timer Service ---
+  // Bidirectional stream between the Hannah Timer Service and Hannah Core.
+  // The Timer Service initiates the connection; if Hannah restarts, the service reconnects.
+  // Hannah sends timer commands (create, cancel, list); the service fires events when timers expire.
+  rpc TimerConnect (stream TimerMessage) returns (stream TimerCommand);
+
+  // --- Timer Admin ---
+  // Query and cancel timers independent of the TimerConnect stream — e.g. for an
+  // Admin-UI or Telegram bot listing/cancelling a user's active timers.
+  rpc GetTimers    (GetTimersRequest)    returns (GetTimersResponse);
+  rpc DeleteTimer  (DeleteTimerRequest)  returns (StatusResponse);
+
+  // --- ioBroker Agent ---
+  // Single bidirectional stream between the HannahAgent ioBroker adapter and Hannah Core.
+  // The adapter pushes state updates (device states, presence, text commands);
+  // Hannah pushes device-control commands and on-demand state-subscription requests back.
+  // The adapter initiates the connection; if Hannah restarts, the adapter reconnects.
+  rpc AgentConnect (stream AgentMessage) returns (stream AgentCommand);
+
+  // --- Automations ---
+  // Bidirectional stream for external automation services (e.g. telegram_autoresponder).
+  // The service sends an AutomationRegister identifying itself, then Hannah replies with
+  // an AutomationSnapshot (all users with it currently enabled) followed by live
+  // AutomationStateChanged deltas as users toggle it via SetAutomation/voice.
+  // Chosen over SubscribeEvents so a reconnecting service always gets a fresh snapshot
+  // instead of missing state changes that happened while it was offline.
+  rpc AutomationConnect (stream AutomationMessage) returns (stream AutomationCommand);
+
+  // --- Channels ---
+  // Bidirectional stream for channel adapters (e.g. the Telegram service). The adapter
+  // sends a ChannelRegister and keeps the stream open; it counts as available exactly as
+  // long as the stream is open. A second registration for the same service replaces the
+  // first. Link tokens (CreateLinkToken) are redeemed over this stream.
+  rpc ChannelConnect (stream ChannelMessage) returns (stream ChannelCommand);
+  // Currently connected channel adapters and whether they support account linking.
+  rpc GetChannels    (Empty)                 returns (GetChannelsResponse);
+
+  // --- Infrastructure ---
+  // Service discovery for components: Hannah sends an InfrastructureSnapshot of all
+  // currently available infrastructure services (e.g. the log collector) right after
+  // subscribing, followed by ServiceAvailable/ServiceUnavailable deltas.
+  rpc SubscribeInfrastructure (InfrastructureFilter) returns (stream InfrastructureMessage);
+  // Bidirectional stream for the log collector. The collector sends a LogCollectorRegister
+  // and keeps the stream open; it counts as available exactly as long as the stream is
+  // open, and a second registration for the same instance replaces the first (same
+  // semantics as ChannelConnect). Not related to CollectorConnect (wakeword capture).
+  rpc LogCollectorConnect (stream LogCollectorMessage) returns (stream LogCollectorCommand);
+
+  // --- Activity Log ---
+  // Read access to the Activity Log (#220) for external consumers (WebUI). List returns
+  // full entry detail inline (transcript, intent + intent_meta, answer text) with
+  // cursor-based pagination; audio is fetched separately, decoded server-side from the
+  // stored WAV and streamed as raw PCM chunks.
+  rpc ListActivityLog     (ListActivityLogRequest)     returns (ListActivityLogResponse);
+  rpc StreamActivityAudio (StreamActivityAudioRequest) returns (stream ActivityAudioChunk);
+
+  // --- Messages (passive per-user mailbox, third notification type) ---
+  rpc CreateMessage (CreateMessageRequest) returns (StatusResponse);
+  rpc ListMessages  (ListMessagesRequest)  returns (ListMessagesResponse);
+  rpc DeleteMessage (DeleteMessageRequest) returns (StatusResponse);
+}

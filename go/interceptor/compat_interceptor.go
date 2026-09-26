@@ -40,9 +40,15 @@ const CompatVersionMetadataKey = "x-compat-version"
 // "absent means 1" convention documented there.
 const DefaultCompatVersion int32 = 1
 
-// hannahServiceFullName must match the `package` + `service` declaration
-// in hannah.proto (package hannah; service HannahService).
-const hannahServiceFullName protoreflect.FullName = "hannah.HannahService"
+// hannahServiceFullNames must match the `package` + `service` declarations in
+// hannah.proto and hannah/v1/hannah.proto. Looked up by name in the global
+// registry instead of imported: hannahv1 imports this package (shared
+// options.proto), so importing it back would be a cycle. A service is only
+// registered if the consumer imports its package — missing ones are skipped.
+var hannahServiceFullNames = []protoreflect.FullName{
+	"hannah.HannahService",
+	"hannah.v1.HannahService",
+}
 
 var (
 	requiredVersionsOnce sync.Once
@@ -90,21 +96,26 @@ func requiredCompatVersion(method protoreflect.MethodDescriptor) int32 {
 // own init()).
 func buildRequiredVersions() (map[string]int32, error) {
 	requiredVersionsOnce.Do(func() {
-		d, err := protoregistry.GlobalFiles.FindDescriptorByName(hannahServiceFullName)
-		if err != nil {
-			requiredVersionsErr = fmt.Errorf("compat_interceptor: HannahService descriptor not found (was the generated package imported for its registration side effect?): %w", err)
-			return
+		out := map[string]int32{}
+		for _, name := range hannahServiceFullNames {
+			d, err := protoregistry.GlobalFiles.FindDescriptorByName(name)
+			if err != nil {
+				continue // package not imported by this consumer
+			}
+			service, ok := d.(protoreflect.ServiceDescriptor)
+			if !ok {
+				requiredVersionsErr = fmt.Errorf("compat_interceptor: %s is not a service descriptor", name)
+				return
+			}
+			methods := service.Methods()
+			for i := 0; i < methods.Len(); i++ {
+				m := methods.Get(i)
+				out[fmt.Sprintf("/%s/%s", service.FullName(), m.Name())] = requiredCompatVersion(m)
+			}
 		}
-		service, ok := d.(protoreflect.ServiceDescriptor)
-		if !ok {
-			requiredVersionsErr = fmt.Errorf("compat_interceptor: %s is not a service descriptor", hannahServiceFullName)
+		if len(out) == 0 {
+			requiredVersionsErr = fmt.Errorf("compat_interceptor: no HannahService descriptor found (was a generated package imported for its registration side effect?)")
 			return
-		}
-		out := make(map[string]int32, service.Methods().Len())
-		methods := service.Methods()
-		for i := 0; i < methods.Len(); i++ {
-			m := methods.Get(i)
-			out[fmt.Sprintf("/%s/%s", service.FullName(), m.Name())] = requiredCompatVersion(m)
 		}
 		requiredVersions = out
 	})

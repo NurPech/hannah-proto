@@ -16,5 +16,15 @@ if (!latestTag) {
 }
 
 console.log(`Against: ${latestTag}`);
+
+// The unversioned hannah package is frozen since hannah.v1 exists (N−1,
+// hannah-proto#11) — same check as the lint:buf CI job.
+const frozenChanges = run(`git diff --name-only ${latestTag} -- hannah/ ":!hannah/v1/"`);
+if (frozenChanges) {
+    console.error('The unversioned hannah package is frozen (N−1). Make changes in hannah/v1/ instead. Changed:');
+    console.error(frozenChanges);
+    process.exit(1);
+}
+
 execSync('buf lint', { stdio: 'inherit' });
 execSync(`buf breaking --against ".git#tag=${latestTag}"`, { stdio: 'inherit' });

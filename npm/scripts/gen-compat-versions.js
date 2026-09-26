@@ -58,14 +58,17 @@ function messageCompatVersions(descriptorSet) {
   return versions;
 }
 
-// bare RPC method name (e.g. "SubmitText") -> max(compat_version of its
-// request type, compat_version of its response type). Bare name, not the
-// full "/pkg.Service/Method" path, because that's what the interceptor has
-// available (options.method_definition.path split on "/").
+// full method path (e.g. "/hannah.v1.HannahService/SubmitText") -> max(
+// compat_version of its request type, compat_version of its response type).
+// Full path, not the bare method name: with hannah and hannah.v1 side by side
+// (hannah-proto#11), the same bare name exists in both packages and the values
+// diverge as soon as v1 changes. Same key as Python/Go use.
 function requiredCompatVersions(descriptorSet, msgVersions) {
   const required = {};
   for (const file of descriptorSet.file ?? []) {
+    const pkg = file.package ?? "";
     for (const service of file.service ?? []) {
+      const serviceName = pkg ? `${pkg}.${service.name}` : service.name;
       for (const method of service.method ?? []) {
         const inputType = method.inputType.replace(/^\./, "");
         const outputType = method.outputType.replace(/^\./, "");
@@ -73,7 +76,7 @@ function requiredCompatVersions(descriptorSet, msgVersions) {
           msgVersions[inputType] ?? DEFAULT_COMPAT_VERSION,
           msgVersions[outputType] ?? DEFAULT_COMPAT_VERSION,
         );
-        required[method.name] = v;
+        required[`/${serviceName}/${method.name}`] = v;
       }
     }
   }

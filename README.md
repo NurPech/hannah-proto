@@ -16,6 +16,27 @@ Three independent, tag-triggered publish targets — pick whichever matches your
 
 Go has no separate package registry, so that tagged GitHub repo *is* the package — `go get` resolves it directly.
 
+## API generations: hannah.v1
+
+The schema exists in two packages side by side:
+
+| Package | Files | Status |
+|---|---|---|
+| `hannah.v1` | `hannah/v1/*.proto` | **current generation** — all changes go here |
+| `hannah` (unversioned) | `hannah/*.proto` | frozen (N−1), kept so older components keep working |
+
+Both carry the same services and messages, but under different gRPC method paths (`/hannah.v1.HannahService/...` vs `/hannah.HannahService/...`), so a server can serve both at once and gRPC routes each call to the right one. Hannah Core serves the current generation and the one before it (N and N−1, never more). Clients use the current generation and fall back to the previous one if Core answers `UNIMPLEMENTED` (Core too old).
+
+A breaking change never happens inside a generation — it starts the next one (`hannah.v2`), and the oldest one is removed. `hannah/options.proto` (the `compat_version` extension) is shared by both packages, not copied. The API generation is independent of the package version: `hannah.v1` ships in 4.x.
+
+| Language | Current generation | Previous generation |
+|---|---|---|
+| Python | `from hannah_proto.v1 import hannah_pb2` | `from hannah_proto import hannah_pb2` |
+| TypeScript | `import { v1 } from '@m1kad0/hannah-proto'` → `v1.agent.AgentMessage` | `import { agent } from '@m1kad0/hannah-proto'` |
+| Go | `github.com/NurPech/hannah-proto-go/v4/hannahv1` | `github.com/NurPech/hannah-proto-go/v4` |
+
+CI rejects any change under `hannah/` outside `hannah/v1/`.
+
 ## Versioning: PROTO_VERSION
 
 Alongside the semver package/tag version, every release carries a single-integer `PROTO_VERSION` (see the `PROTO_VERSION` file). Hannah Core and its clients exchange this value on every call and reject a mismatch at runtime — that's the actual compatibility gate, not the semver tag. A breaking schema change requires bumping `PROTO_VERSION`; CI enforces this on every merge request via `buf breaking`.

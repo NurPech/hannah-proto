@@ -1,0 +1,80 @@
+syntax = "proto3";
+
+package hannah.v1;
+
+option go_package = "github.com/NurPech/hannah-proto-go/hannahv1;hannahv1";
+
+import "hannah/options.proto";
+
+message SatelliteCaptureRequest {
+  string device_id   = 1;
+  // "noise" (default) or "hey_hannah" — controls ESP streaming behaviour.
+  // noise: continuous auto-flush every 5 s.
+  // hey_hannah: stream only while PTT is held, flush on PTT release.
+  string sample_type = 2;
+}
+
+message TriggerPlinkRequest {
+  string device_id       = 1;
+  float  record_duration = 2;  // seconds to hold virtual PTT after plink (default 3.0)
+}
+
+// ok=false when the satellite is unknown or already captured by another client.
+message SatelliteCaptureResponse {
+  bool   ok    = 1;
+  string error = 2;
+}
+
+// A single audio chunk streamed from a captured satellite to the collector.
+// end_of_utterance=true marks a PTT-release boundary — the collector should
+// finalise and save the accumulated audio as a labelled sample at that point.
+message SatelliteAudioChunk {
+  bytes pcm              = 1;  // raw PCM, 16-bit signed mono
+  int32 sample_rate      = 2;  // Hz, typically 16000
+  bool  end_of_utterance = 3;  // true = PTT released, utterance boundary
+}
+
+// Sent by Hannah Core over the CollectorConnect stream to start or stop a
+// satellite capture — the Collector-side counterpart to RequestSatelliteCapture/
+// ReleaseSatelliteCapture, pushed proactively instead of polled.
+// capture_mode is only meaningful when sample_type is hey_hannah.
+message CaptureCommand {
+  option (compat_version) = 2;
+
+  string device_id = 1;
+  SampleType sample_type = 2;
+  CaptureMode capture_mode = 3;
+  bool stop = 4;
+}
+
+enum CaptureMode {
+  CAPTURE_MODE_UNSPECIFIED = 0;
+  reserved 1;
+  reserved "CAPTURE_MODE_MANUAL";  // removed: identical in practice to CAPTURE_MODE_PTT, use that instead
+  CAPTURE_MODE_PTT = 2;
+  CAPTURE_MODE_PLINK = 3;
+}
+
+// Deliberately a oneof of (currently empty) payload messages rather than a plain
+// enum — leaves room to attach per-sample-type data later without a breaking change.
+message SampleType {
+  oneof payload {
+    NoiseSample noise = 1;
+    HeyHannahSample hey_hannah = 2;
+  }
+}
+
+message NoiseSample {}
+message HeyHannahSample {}
+
+// Sent by the Collector over the CollectorConnect stream.
+message CollectorMessage {
+  oneof payload {
+    CollectorAck ack = 1;  // initial confirmation when stream is established
+  }
+}
+
+// Sent once by the Collector after the CollectorConnect stream is established.
+message CollectorAck {
+  string message = 1;  // human-readable status
+}

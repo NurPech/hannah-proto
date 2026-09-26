@@ -25,6 +25,8 @@ rm -rf src
 # ts-proto mirrors the source .proto directory (hannah/) into the output —
 # flatten back to a single directory so index.ts's barrel loop below (and
 # every published import path) stays exactly as before the proto move.
+# hannah/v1/ comes along as src/v1/ (hannah-proto#11); ts-proto's relative
+# imports (`./shared`, `../options`) still resolve after the move.
 mv src/hannah/* src/
 rmdir src/hannah
 
@@ -63,4 +65,13 @@ echo "export const PROTO_VERSION = $(cat ../PROTO_VERSION);" > src/version.ts
     if [ "$base" = "version" ] || [ "$base" = "index" ]; then continue; fi
     echo "export * as ${base} from './${base}';"
   done
+  # hannah.v1 (hannah-proto#11) as its own namespace: `v1.agent.AgentMessage`.
+  echo "export * as v1 from './v1';"
 } > src/index.ts
+
+# Same namespaced barrel for the v1 package.
+for f in src/v1/*.ts; do
+  base="$(basename "$f" .ts)"
+  if [ "$base" = "index" ]; then continue; fi
+  echo "export * as ${base} from './${base}';"
+done > src/v1/index.ts
