@@ -71,6 +71,36 @@ def build_required_versions(service: ServiceDescriptor) -> Dict[str, int]:
     }
 
 
+def hannah_services() -> Tuple[ServiceDescriptor, ...]:
+    """Both HannahService generations: the unversioned `hannah.HannahService`
+    (N−1, frozen) and `hannah.v1.HannahService`. The same method can be
+    called on either path (hannah-proto#11), so the interceptors cover both
+    by default — like Go's and TypeScript's. Imported here, not at module
+    level, to keep this module importable from the generated packages."""
+    from .. import hannah_pb2 as legacy_pb2
+    from ..v1 import hannah_pb2 as v1_pb2
+
+    return (
+        legacy_pb2.DESCRIPTOR.services_by_name["HannahService"],
+        v1_pb2.DESCRIPTOR.services_by_name["HannahService"],
+    )
+
+
+def _required_versions_for(services: Tuple[ServiceDescriptor, ...]) -> Dict[str, int]:
+    """Merged map over `services` (default: both HannahService generations).
+    Keys are full method paths, so methods of different services never collide."""
+    for service in services:
+        if not isinstance(service, ServiceDescriptor):
+            raise TypeError(
+                f"expected ServiceDescriptor, got {type(service).__name__} "
+                "(pass `enforce` as a keyword argument)"
+            )
+    required: Dict[str, int] = {}
+    for service in services or hannah_services():
+        required.update(build_required_versions(service))
+    return required
+
+
 class CompatVersionInterceptor(grpc.ServerInterceptor):
     """Per-method compat_version gate. Mirrors ProtocolVersionInterceptor's
     enforce-toggle rollout pattern: enforce=False only logs mismatches,
@@ -79,10 +109,13 @@ class CompatVersionInterceptor(grpc.ServerInterceptor):
     A missing x-compat-version header is treated as compat_version 1 —
     i.e. "this client predates the mechanism (or hasn't adopted it yet),
     only let through calls that never had a breaking change."
+
+    Covers the given services, by default both HannahService generations
+    (`hannah` and `hannah.v1`), so one instance serves both paths.
     """
 
-    def __init__(self, service: ServiceDescriptor, enforce: bool = False):
-        self._required = build_required_versions(service)
+    def __init__(self, *services: ServiceDescriptor, enforce: bool = False):
+        self._required = _required_versions_for(services)
         self.enforce = enforce  # public: runtime-togglable, same pattern as ProtocolVersionInterceptor.enforce
 
     def intercept_service(self, continuation, handler_call_details):
@@ -167,10 +200,14 @@ class CompatVersionClientInterceptor(
 
     For a plain synchronous grpc.Channel client (e.g. Hannah-WebUI), use
     `CompatVersionSyncClientInterceptor` below instead.
+
+    Covers the given services, by default both HannahService generations: a
+    client that falls back from `hannah.v1` to the unversioned path against
+    an older Core gets the right value on either path.
     """
 
-    def __init__(self, service: ServiceDescriptor):
-        self._required = build_required_versions(service)
+    def __init__(self, *services: ServiceDescriptor):
+        self._required = _required_versions_for(services)
 
     def _value_for(self, method: str) -> str:
         return str(self._required.get(method, DEFAULT_COMPAT_VERSION))
@@ -224,11 +261,11 @@ class CompatVersionSyncClientInterceptor(
     CompatVersionClientInterceptor — same x-compat-version attachment logic,
     just on the four sync ClientInterceptor base classes instead of the
     grpc.aio ones. Built for Hannah-WebUI, which uses a synchronous grpc
-    client (hannah-proto#11).
+    client (hannah-proto#11). Same service defaults as the aio one.
     """
 
-    def __init__(self, service: ServiceDescriptor):
-        self._required = build_required_versions(service)
+    def __init__(self, *services: ServiceDescriptor):
+        self._required = _required_versions_for(services)
 
     def _value_for(self, method: str) -> str:
         return str(self._required.get(method, DEFAULT_COMPAT_VERSION))
