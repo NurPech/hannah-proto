@@ -6,6 +6,9 @@
 
 ## **WORK IN PROGRESS**
 
+## 4.6.2 (2026-09-27)
+* Fixed: the Python `grpc.aio` compat interceptor (`CompatVersionClientInterceptor`) sent `x-compat-version: 1` on every call, because `grpc.aio` hands interceptors the method path as `bytes` while the lookup map is keyed by `str`. An aio client calling a method that needs a higher compat_version (e.g. `SubmitSatelliteAudio`, 3) was rejected by a Core with `enforce_compat_version` on. The sync interceptor was not affected. `hannah-proto#13`
+
 ## 4.6.1 (2026-09-26)
 * Fixed: the Python compat interceptors (`CompatVersionInterceptor`, `CompatVersionClientInterceptor`, `CompatVersionSyncClientInterceptor`) only covered one service; they now take several and by default cover both `hannah.HannahService` and `hannah.v1.HannahService`, like Go and TypeScript already do. A client that falls back from `hannah.v1` to the unversioned path against an older Core now sends the right `x-compat-version` on either path instead of the default `1`, and a server needs only one interceptor for both. Passing a single service still works; `enforce` on the server interceptor is keyword-only now (a positional non-service argument raises a `TypeError`). `hannah-proto#12`
 

@@ -29,7 +29,7 @@ from __future__ import annotations
 
 import collections
 import logging
-from typing import Dict, Tuple
+from typing import Dict, Tuple, Union
 
 import grpc
 import grpc.aio
@@ -148,6 +148,14 @@ class CompatVersionInterceptor(grpc.ServerInterceptor):
         return _make_abort_handler(handler, message)
 
 
+def _method_path(method: Union[str, bytes]) -> str:
+    """grpc.aio hands client interceptors the method path as bytes
+    (b'/hannah.v1.HannahService/SubmitText'), the sync API as str. The
+    map is keyed by str, so without this every aio call fell back to the
+    default compat_version 1 (hannah-proto#13)."""
+    return method.decode() if isinstance(method, bytes) else method
+
+
 def client_compat_version_metadata(service: ServiceDescriptor, method_name: str) -> Tuple[str, str]:
     """For client-side use: the (key, value) metadata tuple to attach to an
     outgoing call, so the server can evaluate it against its own (always
@@ -209,8 +217,8 @@ class CompatVersionClientInterceptor(
     def __init__(self, *services: ServiceDescriptor):
         self._required = _required_versions_for(services)
 
-    def _value_for(self, method: str) -> str:
-        return str(self._required.get(method, DEFAULT_COMPAT_VERSION))
+    def _value_for(self, method: Union[str, bytes]) -> str:
+        return str(self._required.get(_method_path(method), DEFAULT_COMPAT_VERSION))
 
     async def intercept_unary_unary(self, continuation, client_call_details, request):
         value = self._value_for(client_call_details.method)
@@ -267,8 +275,8 @@ class CompatVersionSyncClientInterceptor(
     def __init__(self, *services: ServiceDescriptor):
         self._required = _required_versions_for(services)
 
-    def _value_for(self, method: str) -> str:
-        return str(self._required.get(method, DEFAULT_COMPAT_VERSION))
+    def _value_for(self, method: Union[str, bytes]) -> str:
+        return str(self._required.get(_method_path(method), DEFAULT_COMPAT_VERSION))
 
     def intercept_unary_unary(self, continuation, client_call_details, request):
         value = self._value_for(client_call_details.method)
