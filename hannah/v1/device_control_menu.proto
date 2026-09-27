@@ -3,6 +3,7 @@ syntax = "proto3";
 package hannah.v1;
 
 import "hannah/v1/shared.proto";
+import "hannah/options.proto";
 
 option go_package = "github.com/NurPech/hannah-proto-go/hannahv1;hannahv1";
 
@@ -28,7 +29,14 @@ message GetDevicesResponse {
 }
 
 message ControlDeviceRequest {
+  option (compat_version) = 2;
+
   string device_id = 1;  // DeviceInfo.id
   string state     = 2;  // state key: "on", "level", "color"
   string value     = 3;  // string-serialised value: "true", "false", "50", "#FF0000"
+  // The calling service and its user, same as SubmitTextRequest: Core looks up
+  // the user via linked_accounts to check AgentDevice.required_trust_level.
+  // Unset or not linked = guest (trust level 0) (hannah-proto#17).
+  string source_service = 4;  // e.g. "telegram"
+  string source_user_id = 5;  // e.g. Telegram chat_id as string
 }
