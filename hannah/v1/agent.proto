@@ -22,6 +22,12 @@ message AgentMessage {
     AgentRoomSnapshot     send_rooms        = 8;  // full room catalog, independent of devices
     AgentWeatherUpdate    weather_update    = 9; 
   }
+  // Set = the adapter asks Core to reply with an AgentAck carrying the same
+  // ack_id, listing the fields of this message Core's schema did not know.
+  // Unset = no ack. A Core too old for AgentAck ignores this field and never
+  // replies, so the adapter must treat a missing ack (after a timeout) as
+  // "not supported" (hannah-proto#16).
+  optional uint64 ack_id = 10;
 }
 
 // Adapter instructs Hannah to control satellites in a room or a specific satellite.
@@ -87,7 +93,27 @@ message AgentCommand {
     AgentResidentAnswered   resident_answered   = 9;  // answer to an ask_resident request
     AgentSatelliteDeleted   satellite_deleted   = 10; // Hannah Core deleted a satellite — adapter must remove its object tree
     AgentSetResidentMood    set_resident_mood   = 11; // Hannah wants to set a resident's mood, independent of presence
+    AgentAck                ack                 = 12; // reply to an AgentMessage that set ack_id
   }
+}
+
+// Core's reply to an AgentMessage that set ack_id: which fields of that
+// message (including nested messages) Core's schema did not know and
+// therefore dropped. Empty unknown_fields = every field was known.
+// Core guarantees that every field it does not report is also evaluated,
+// so a security-relevant field never reads as supported without being
+// enforced (hannah-proto#16).
+message AgentAck {
+  uint64 ack_id = 1;
+  repeated UnknownFields unknown_fields = 2;
+}
+
+// Unknown field numbers, aggregated per message type — a snapshot with many
+// devices yields one entry for hannah.v1.AgentDevice, not one per device.
+// An unknown oneof payload shows up as a field number on the enclosing message.
+message UnknownFields {
+  string message_type           = 1;  // fully qualified name, e.g. "hannah.v1.AgentDevice"
+  repeated uint32 field_numbers = 2;  // deduplicated
 }
 
 message AgentFirmwareEvent {
@@ -202,7 +228,7 @@ message AgentStateValue {
 
 // A device from the ioBroker adapter
 message AgentDevice {
-    option (compat_version) = 3;
+    option (compat_version) = 4;
 
     string state_id  = 1;
     string floor     = 2;
@@ -233,6 +259,11 @@ message AgentDevice {
     // some Homematic/KNX shutter/awning actuators. Unset = unknown/no override,
     // not `false` (hannah-proto#4).
     optional bool inverted = 14;
+    // Minimum user trust level (0–10, same scale as the users' trust level)
+    // required to control this state, read by the adapter from
+    // common.custom["hannah.0"].neededTrust. Unset = not configured, no
+    // restriction — distinct from an explicit 0 (hannah-proto#15).
+    optional int32 required_trust_level = 15;
 }
 
 // a list with all known devices from the ioBroker adapter

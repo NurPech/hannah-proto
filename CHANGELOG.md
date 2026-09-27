@@ -6,6 +6,10 @@
 
 ## **WORK IN PROGRESS**
 
+## 4.7.0 (2026-09-27)
+* Added: `hannah/v1/agent.proto` — `AgentDevice.required_trust_level` (`optional int32`), a per-state minimum user trust level (0–10, same scale as the users' trust level) that the ioBroker adapter reads from `common.custom["hannah.0"].neededTrust` and Hannah Core checks before setting the state. `optional` so that "not configured" (no restriction) is distinct from an explicit `0`. `AgentDevice.compat_version` bumped from 3 to 4: nothing breaks on the wire, but the message now carries a security-relevant meaning. The unversioned `hannah` package (N−1) is unchanged; clients on it simply don't send the field. Additive, `PROTO_VERSION` unchanged. `hannah-proto#15`
+* Added: `hannah/v1/agent.proto` — `AgentMessage.ack_id` and `AgentCommand.ack` (`AgentAck`), a generic way for the ioBroker adapter to learn which fields Hannah Core did not understand. Protobuf silently drops fields a receiver doesn't know, so a newer adapter could not tell whether an older Core evaluates e.g. a security-relevant field. When the adapter sets `ack_id` on an `AgentMessage`, Core replies with an `AgentAck` carrying the same `ack_id` and the unknown field numbers per message type (`UnknownFields`: fully qualified type name plus deduplicated field numbers; empty list = everything understood). Core guarantees that every field it does not report is also evaluated. A Core too old for this ignores `ack_id` and never replies; the adapter treats a missing ack after a timeout as "not supported". Purely additive, no `compat_version` bump, `PROTO_VERSION` unchanged. `hannah-proto#16`
+
 ## 4.6.3 (2026-09-27)
 * Fixed: the Go and Python compat interceptors only covered `HannahService`; calls to any other service — such as the log collector's `LogService`, on either `hannah.LogService` or `hannah.v1.LogService` — went out with the default `x-compat-version: 1`. They now cover every service of the `hannah` and `hannah.v1` packages, like TypeScript already did, so all three languages send the same value for every method. `hannah-proto#14`
 
