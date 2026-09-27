@@ -28,7 +28,9 @@ stay in the runtime check path at all. It can keep existing purely for
 from __future__ import annotations
 
 import collections
+import importlib
 import logging
+import pkgutil
 from typing import Dict, Tuple, Union
 
 import grpc
@@ -72,22 +74,28 @@ def build_required_versions(service: ServiceDescriptor) -> Dict[str, int]:
 
 
 def hannah_services() -> Tuple[ServiceDescriptor, ...]:
-    """Both HannahService generations: the unversioned `hannah.HannahService`
-    (N−1, frozen) and `hannah.v1.HannahService`. The same method can be
-    called on either path (hannah-proto#11), so the interceptors cover both
-    by default — like Go's and TypeScript's. Imported here, not at module
-    level, to keep this module importable from the generated packages."""
-    from .. import hannah_pb2 as legacy_pb2
-    from ..v1 import hannah_pb2 as v1_pb2
+    """Every service of both API generations — the unversioned `hannah`
+    package (N−1, frozen) and `hannah.v1` — so HannahService, LogService, ...
+    The same method can be called on either path (hannah-proto#11), so the
+    interceptors cover all of them by default, like Go's and TypeScript's
+    (hannah-proto#14). Imported here, not at module level, to keep this module
+    importable from the generated packages."""
+    import hannah_proto
+    import hannah_proto.v1
 
-    return (
-        legacy_pb2.DESCRIPTOR.services_by_name["HannahService"],
-        v1_pb2.DESCRIPTOR.services_by_name["HannahService"],
-    )
+    services = []
+    for package in (hannah_proto, hannah_proto.v1):
+        # Importing the package imports every *_pb2 module (see its __init__).
+        for module_info in pkgutil.iter_modules(package.__path__):
+            if not module_info.name.endswith("_pb2"):
+                continue
+            module = importlib.import_module(f"{package.__name__}.{module_info.name}")
+            services.extend(module.DESCRIPTOR.services_by_name.values())
+    return tuple(services)
 
 
 def _required_versions_for(services: Tuple[ServiceDescriptor, ...]) -> Dict[str, int]:
-    """Merged map over `services` (default: both HannahService generations).
+    """Merged map over `services` (default: every service of `hannah` and `hannah.v1`).
     Keys are full method paths, so methods of different services never collide."""
     for service in services:
         if not isinstance(service, ServiceDescriptor):
@@ -110,7 +118,7 @@ class CompatVersionInterceptor(grpc.ServerInterceptor):
     i.e. "this client predates the mechanism (or hasn't adopted it yet),
     only let through calls that never had a breaking change."
 
-    Covers the given services, by default both HannahService generations
+    Covers the given services, by default every service of both generations
     (`hannah` and `hannah.v1`), so one instance serves both paths.
     """
 
@@ -209,7 +217,7 @@ class CompatVersionClientInterceptor(
     For a plain synchronous grpc.Channel client (e.g. Hannah-WebUI), use
     `CompatVersionSyncClientInterceptor` below instead.
 
-    Covers the given services, by default both HannahService generations: a
+    Covers the given services, by default every service of both generations: a
     client that falls back from `hannah.v1` to the unversioned path against
     an older Core gets the right value on either path.
     """

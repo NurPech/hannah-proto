@@ -6,6 +6,9 @@
 
 ## **WORK IN PROGRESS**
 
+## 4.6.3 (2026-09-27)
+* Fixed: the Go and Python compat interceptors only covered `HannahService`; calls to any other service — such as the log collector's `LogService`, on either `hannah.LogService` or `hannah.v1.LogService` — went out with the default `x-compat-version: 1`. They now cover every service of the `hannah` and `hannah.v1` packages, like TypeScript already did, so all three languages send the same value for every method. `hannah-proto#14`
+
 ## 4.6.2 (2026-09-27)
 * Fixed: the Python `grpc.aio` compat interceptor (`CompatVersionClientInterceptor`) sent `x-compat-version: 1` on every call, because `grpc.aio` hands interceptors the method path as `bytes` while the lookup map is keyed by `str`. An aio client calling a method that needs a higher compat_version (e.g. `SubmitSatelliteAudio`, 3) was rejected by a Core with `enforce_compat_version` on. The sync interceptor was not affected. `hannah-proto#13`
 

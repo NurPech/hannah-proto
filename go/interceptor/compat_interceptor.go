@@ -40,14 +40,16 @@ const CompatVersionMetadataKey = "x-compat-version"
 // "absent means 1" convention documented there.
 const DefaultCompatVersion int32 = 1
 
-// hannahServiceFullNames must match the `package` + `service` declarations in
-// hannah.proto and hannah/v1/hannah.proto. Looked up by name in the global
-// registry instead of imported: hannahv1 imports this package (shared
-// options.proto), so importing it back would be a cycle. A service is only
-// registered if the consumer imports its package — missing ones are skipped.
-var hannahServiceFullNames = []protoreflect.FullName{
-	"hannah.HannahService",
-	"hannah.v1.HannahService",
+// hannahPackages are the proto packages whose services the interceptors cover:
+// every service in them (HannahService, LogService, ...), for both API
+// generations (hannah-proto#11, #14) — like the generated TypeScript table.
+// Looked up in the global registry instead of imported: hannahv1 imports this
+// package (shared options.proto), so importing it back would be a cycle. A
+// package's services are only registered if the consumer imports it — missing
+// ones are skipped.
+var hannahPackages = []protoreflect.FullName{
+	"hannah",
+	"hannah.v1",
 }
 
 var (
@@ -97,24 +99,22 @@ func requiredCompatVersion(method protoreflect.MethodDescriptor) int32 {
 func buildRequiredVersions() (map[string]int32, error) {
 	requiredVersionsOnce.Do(func() {
 		out := map[string]int32{}
-		for _, name := range hannahServiceFullNames {
-			d, err := protoregistry.GlobalFiles.FindDescriptorByName(name)
-			if err != nil {
-				continue // package not imported by this consumer
-			}
-			service, ok := d.(protoreflect.ServiceDescriptor)
-			if !ok {
-				requiredVersionsErr = fmt.Errorf("compat_interceptor: %s is not a service descriptor", name)
-				return
-			}
-			methods := service.Methods()
-			for i := 0; i < methods.Len(); i++ {
-				m := methods.Get(i)
-				out[fmt.Sprintf("/%s/%s", service.FullName(), m.Name())] = requiredCompatVersion(m)
-			}
+		for _, pkg := range hannahPackages {
+			protoregistry.GlobalFiles.RangeFilesByPackage(pkg, func(fd protoreflect.FileDescriptor) bool {
+				services := fd.Services()
+				for i := 0; i < services.Len(); i++ {
+					service := services.Get(i)
+					methods := service.Methods()
+					for j := 0; j < methods.Len(); j++ {
+						m := methods.Get(j)
+						out[fmt.Sprintf("/%s/%s", service.FullName(), m.Name())] = requiredCompatVersion(m)
+					}
+				}
+				return true
+			})
 		}
 		if len(out) == 0 {
-			requiredVersionsErr = fmt.Errorf("compat_interceptor: no HannahService descriptor found (was a generated package imported for its registration side effect?)")
+			requiredVersionsErr = fmt.Errorf("compat_interceptor: no hannah service descriptor found (was a generated package imported for its registration side effect?)")
 			return
 		}
 		requiredVersions = out
