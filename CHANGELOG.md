@@ -6,6 +6,9 @@
 
 ## **WORK IN PROGRESS**
 
+## 4.8.0 (2026-09-28)
+* Added: `hannah/v1/agent.proto` — `AgentStateUpdate.canonical_key` (`optional string`), the semantic role of the state (`on`/`level`/`color`/`current`/`expected`/...) resolved by the adapter, same as `AgentDevice.canonical_key` already provides on the initial snapshot. Without it, Hannah Core has to guess the canonical key on every live update from the raw ioBroker state suffix via a hardcoded lookup table (`DEFAULT_IOBROKER_STATE_NAMES`); an unrecognized suffix (e.g. Matter adapter states ending in `ACTUAL`/`TARGET`) silently drops the update and freezes the value at its last snapshot. Purely additive, no `compat_version` bump, `PROTO_VERSION` unchanged. `hannah-proto#18`, prep for `hannah#374`
+
 ## 4.7.1 (2026-09-27)
 * Added: `hannah/v1/device_control_menu.proto` — `ControlDeviceRequest.source_service` / `source_user_id`, the same pair as on `SubmitTextRequest`. Hannah Core looks up the calling user via `linked_accounts` to check the per-state `AgentDevice.required_trust_level` before switching a device; without these fields (or for an unlinked account) the caller counts as a guest with trust level 0. `ControlDeviceRequest.compat_version` bumped from 1 to 2: nothing breaks on the wire, but the request now carries a security-relevant meaning. The unversioned `hannah` package (N−1) is unchanged. Additive, `PROTO_VERSION` unchanged. `hannah-proto#17`
 

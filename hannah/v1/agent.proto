@@ -65,6 +65,7 @@ message AgentStateUpdate {
   string value    = 2;  // JSON-encoded value: "true", "42", "\"text\""
   bool   ack      = 3;  // true = confirmed by device
   int64  ts       = 4;  // Unix timestamp in milliseconds
+  optional string canonical_key = 5;  // semantic role of this state, resolved by the adapter from common.role (e.g. "on", "level", "color", "current", "expected"); empty = adapter hasn't been updated yet or role is unresolvable
 }
 
 enum ResidentType {
