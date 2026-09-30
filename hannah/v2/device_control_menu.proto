@@ -16,6 +16,7 @@ message DeviceInfo {
   DeviceClass device_class = 10;
   repeated Slot slots      = 11;  // with current values; Slot.writable says what a menu may offer
   bool available           = 12;
+  DeviceSubtype subtype    = 13;  // TypedDevice.subtype, e.g. window or door for a contact
 }
 
 message RoomInfo {

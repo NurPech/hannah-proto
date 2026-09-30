@@ -26,8 +26,9 @@ enum DeviceClass {
   // Any other switchable boolean that fits no other class (scene-like switches,
   // flags, vendor specific switches). Slots: ON (required).
   DEVICE_CLASS_GENERIC_BINARY_SWITCH = 3;
-  // Thermostat/room climate. Slots: TARGET_TEMPERATURE (required), TEMPERATURE,
-  // HUMIDITY, VALVE. Comfort/eco setpoints and similar are not slots.
+  // Radiator or room thermostat. Slots: TARGET_TEMPERATURE (required), TEMPERATURE,
+  // HUMIDITY, VALVE. Comfort/eco setpoints and similar are not slots. Units with an
+  // operating mode and a fan are DEVICE_CLASS_CLIMATE.
   DEVICE_CLASS_THERMOSTAT = 4;
   // Blind, shutter, awning. Slots: POSITION (required), TILT, STOP.
   DEVICE_CLASS_COVER = 5;
@@ -39,6 +40,22 @@ enum DeviceClass {
   // Fallback for anything that matches no class: a list of typed values
   // (GENERIC_NUMBER / GENERIC_BOOL / GENERIC_TEXT), each with label and unit.
   DEVICE_CLASS_GENERIC = 8;
+  // Air conditioner / room climate unit with operating mode and fan. Slots: ON (required),
+  // MODE, TARGET_TEMPERATURE, TEMPERATURE, HUMIDITY, FAN_SPEED. A radiator thermostat
+  // without mode and fan is a THERMOSTAT, not a CLIMATE.
+  DEVICE_CLASS_CLIMATE = 9;
+}
+
+// A finer kind within a device class, for the cases where the class alone does not say
+// what a user means ("the windows" versus "the doors"). Optional: the adapter sets it
+// where it knows (function, role, type detector), otherwise UNSPECIFIED.
+enum DeviceSubtype {
+  // No statement. Hannah Core may fall back to the device name.
+  DEVICE_SUBTYPE_UNSPECIFIED = 0;
+  // DEVICE_CLASS_CONTACT: window contact.
+  DEVICE_SUBTYPE_WINDOW = 1;
+  // DEVICE_CLASS_CONTACT: door contact.
+  DEVICE_SUBTYPE_DOOR = 2;
 }
 
 // What a slot means, and therefore which scale and unit its value has. The adapter
@@ -63,6 +80,13 @@ enum SlotKind {
   SLOT_KIND_TEMPERATURE        = 21;  // number, °C, measured value
   SLOT_KIND_HUMIDITY           = 22;  // number, 0-100 (% relative)
   SLOT_KIND_VALVE              = 23;  // number, 0-100 (% open)
+  // Operating mode of a CLIMATE device, text, one of: "cool", "heat", "dry", "fan_only",
+  // "auto". The adapter normalizes the device's own values to this vocabulary. The modes the
+  // device really supports are listed in Slot.options.
+  SLOT_KIND_MODE               = 24;
+  // Fan level of a CLIMATE device, text, one of: "low", "medium", "high", "auto". Supported
+  // levels are listed in Slot.options.
+  SLOT_KIND_FAN_SPEED          = 25;
 
   // --- cover ---
   SLOT_KIND_POSITION           = 30;  // number, 0-100 (%), 100 = open, 0 = closed (the adapter compensates inverted actuators)
@@ -112,6 +136,11 @@ message Slot {
   // control this slot, read by the adapter from common.custom["hannah.0"].neededTrust.
   // Unset = not configured, no restriction — distinct from an explicit 0.
   optional int32 required_trust_level = 7;
+  // The values this slot accepts, for SLOT_KIND_MODE and SLOT_KIND_FAN_SPEED, taken from the
+  // vocabulary of the kind (e.g. a cooling-only unit lists just "cool", "dry", "fan_only").
+  // Empty = no statement, every value of the vocabulary may work. Hannah uses it to answer
+  // honestly when a device cannot do what was asked.
+  repeated string options = 8;
 }
 
 // A device, as the adapter derived it from the ioBroker objects (grouping, class, slots).
@@ -123,6 +152,7 @@ message TypedDevice {
   DeviceClass device_class = 5;
   repeated Slot slots      = 6;
   bool available           = 7;  // false = device currently unreachable
+  DeviceSubtype subtype    = 8;  // finer kind within the class, UNSPECIFIED = no statement
 }
 
 // All devices the adapter knows. Sent on AgentConnect and whenever the set of devices
