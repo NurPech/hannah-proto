@@ -1,0 +1,41 @@
+syntax = "proto3";
+
+package hannah.v2;
+
+import "hannah/v2/device_model.proto";
+
+option go_package = "github.com/NurPech/hannah-proto-go/hannahv2;hannahv2";
+
+// A device for control menus (WebUI, Telegram), in the typed device model: the class
+// says what it is, the slots carry its current values and what can be controlled.
+// Field numbers 3-8 are intentionally unused: the previous generation's DeviceInfo
+// used them for state-based data with other types.
+message DeviceInfo {
+  string id   = 1;   // TypedDevice.device_id
+  string name = 2;   // display name, e.g. "DeckeSeite"
+  DeviceClass device_class = 10;
+  repeated Slot slots      = 11;  // with current values; Slot.writable says what a menu may offer
+  bool available           = 12;
+}
+
+message RoomInfo {
+  string key              = 1;  // room_id (lowercase), e.g. "wohnzimmer"
+  string name             = 2;  // display name, e.g. "Wohnzimmer"
+  repeated DeviceInfo devices = 3;
+}
+
+message GetDevicesResponse {
+  repeated RoomInfo rooms = 1;
+}
+
+// Direct control of one slot, bypassing the NLU.
+message ControlDeviceRequest {
+  string device_id = 1;  // DeviceInfo.id
+  string slot_id   = 2;  // Slot.slot_id, e.g. "on", "brightness"
+  // The calling service and its user, same as SubmitTextRequest: Core looks up
+  // the user via linked_accounts to check Slot.required_trust_level.
+  // Unset or not linked = guest (trust level 0).
+  string source_service = 4;  // e.g. "telegram"
+  string source_user_id = 5;  // e.g. Telegram chat_id as string
+  SlotValue value = 6;        // the value in the slot's documented scale (see SlotKind)
+}

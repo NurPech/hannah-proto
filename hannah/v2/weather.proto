@@ -1,8 +1,8 @@
 syntax = "proto3";
 
-package hannah;
+package hannah.v2;
 
-option go_package = "github.com/NurPech/hannah-proto-go;hannahproto";
+option go_package = "github.com/NurPech/hannah-proto-go/hannahv2;hannahv2";
 
 // Current weather conditions, discovered by the ioBroker adapter from a configured
 // weather source and pushed via AgentMessage.weather_update. Field set is deliberately

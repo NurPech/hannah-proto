@@ -1,8 +1,8 @@
 syntax = "proto3";
 
-package hannah;
+package hannah.v2;
 
-option go_package = "github.com/NurPech/hannah-proto-go;hannahproto";
+option go_package = "github.com/NurPech/hannah-proto-go/hannahv2;hannahv2";
 
 // --- Timer Admin ---
 // Query and manage timers independent of the TimerConnect stream (see timer_service.proto) —

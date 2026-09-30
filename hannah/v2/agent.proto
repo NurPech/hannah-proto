@@ -1,27 +1,36 @@
 syntax = "proto3";
 
-package hannah;
+package hannah.v2;
 
-import "hannah/shared.proto";
-import "hannah/weather.proto";
-import "hannah/wakeword_capture.proto";
-import "hannah/options.proto";
+import "hannah/v2/device_model.proto";
+import "hannah/v2/weather.proto";
+import "hannah/v2/wakeword_capture.proto";
 
-option go_package = "github.com/NurPech/hannah-proto-go;hannahproto";
+option go_package = "github.com/NurPech/hannah-proto-go/hannahv2;hannahv2";
 
 // Sent by the HannahAgent ioBroker adapter over the AgentConnect stream.
 message AgentMessage {
   oneof payload {
-    AgentStateUpdate      state_update      = 1;  // any ioBroker state changed
+    AgentStateUpdate      state_update      = 1;  // a watched ioBroker state changed (AgentWatchMore)
     AgentResident         resident_update   = 2;  // residents adapter presence changed
     AgentTextCommand      text_command      = 3;  // text command state changed
     AgentSatelliteControl satellite_control = 4;  // satellite control command
-    AgentDeviceSnapshot   send_snapshot     = 5;  // initial snapshot with all states
     AgentResidentSnapshot send_residents    = 6;  // initial snapshot with all residents
     AgentAskResident      ask_resident      = 7;  // ask Resident via Hannah
     AgentRoomSnapshot     send_rooms        = 8;  // full room catalog, independent of devices
-    AgentWeatherUpdate    weather_update    = 9; 
+    AgentWeatherUpdate    weather_update    = 9;
+    // Typed device model (device_model.proto). The adapter maps ioBroker objects
+    // onto device classes and slots; Core never sees ioBroker state IDs for devices.
+    TypedDeviceSnapshot   typed_snapshot    = 11; // initial snapshot with all devices, resent on changes to the set
+    SlotUpdate            slot_update       = 12; // a slot of a device changed
+    DeviceAvailability    device_availability = 13; // a device became (un)reachable
   }
+  // Set = the adapter asks Core to reply with an AgentAck carrying the same
+  // ack_id, listing the fields of this message Core's schema did not know.
+  // Unset = no ack. A Core too old for AgentAck ignores this field and never
+  // replies, so the adapter must treat a missing ack (after a timeout) as
+  // "not supported" (hannah-proto#16).
+  optional uint64 ack_id = 10;
 }
 
 // Adapter instructs Hannah to control satellites in a room or a specific satellite.
@@ -51,11 +60,13 @@ message CaptureControl {
   bool        stop         = 3;
 }
 
-// An ioBroker state change event. ack=true means the device confirmed the value
-// (as opposed to ack=false which is the "desired" value). Hannah uses this to
-// verify that a SetState command was executed successfully.
+// A state change event for a state Hannah asked to watch (AgentWatchMore), e.g. the
+// trigger engine's conditions. Devices are not reported this way, they use SlotUpdate.
+// ack=true means the device confirmed the value (as opposed to ack=false which is the
+// "desired" value). Hannah uses this to verify that a SetState command was executed
+// successfully.
 message AgentStateUpdate {
-  string state_id = 1;  // full ioBroker state ID, e.g. "javascript.0.virtualDevice.Licht.EG.Wohnzimmer.DeckeSeite.on"
+  string state_id = 1;  // full ioBroker state ID, e.g. "0_userdata.0.feeded"
   string value    = 2;  // JSON-encoded value: "true", "42", "\"text\""
   bool   ack      = 3;  // true = confirmed by device
   int64  ts       = 4;  // Unix timestamp in milliseconds
@@ -76,7 +87,7 @@ message AgentTextCommand {
 // Sent by Hannah Core over the AgentConnect stream.
 message AgentCommand {
   oneof command {
-    AgentSetState        set_state        = 1;  // Hannah wants to control an ioBroker device
+    AgentSetState        set_state        = 1;  // Hannah wants to write an arbitrary ioBroker state (trigger actions)
     AgentWatchMore       watch_more       = 2;  // Hannah needs additional states streamed
     AgentSetResident     set_resident     = 3;  // Hannah wants to set a resident's presence state
     AgentSatelliteUpdate satellite_update = 4;  // a satellite registered or disconnected
@@ -87,7 +98,28 @@ message AgentCommand {
     AgentResidentAnswered   resident_answered   = 9;  // answer to an ask_resident request
     AgentSatelliteDeleted   satellite_deleted   = 10; // Hannah Core deleted a satellite — adapter must remove its object tree
     AgentSetResidentMood    set_resident_mood   = 11; // Hannah wants to set a resident's mood, independent of presence
+    AgentAck                ack                 = 12; // reply to an AgentMessage that set ack_id
+    SetSlot                 set_slot            = 13; // Hannah wants to control a slot of a typed device
   }
+}
+
+// Core's reply to an AgentMessage that set ack_id: which fields of that
+// message (including nested messages) Core's schema did not know and
+// therefore dropped. Empty unknown_fields = every field was known.
+// Core guarantees that every field it does not report is also evaluated,
+// so a security-relevant field never reads as supported without being
+// enforced (hannah-proto#16).
+message AgentAck {
+  uint64 ack_id = 1;
+  repeated UnknownFields unknown_fields = 2;
+}
+
+// Unknown field numbers, aggregated per message type — a snapshot with many
+// devices yields one entry for hannah.v2.TypedDevice, not one per device.
+// An unknown oneof payload shows up as a field number on the enclosing message.
+message UnknownFields {
+  string message_type           = 1;  // fully qualified name, e.g. "hannah.v2.TypedDevice"
+  repeated uint32 field_numbers = 2;  // deduplicated
 }
 
 message AgentFirmwareEvent {
@@ -130,19 +162,10 @@ enum ResidentPresenceAction {
 // Hannah instructs the adapter to set a resident's presence state in the residents adapter.
 // type determines whether the target path is .roomie./.guest./.pet.
 message AgentSetResident {
-  option (compat_version) = 2;
-
   string resident_id    = 1;  // e.g. "leonie", "hannah"
-  // Legacy absolute presence value (0=absent, 1=home, 2=night) — writes the combined
-  // presence.state, which cross-clobbers whichever of home/away/night Hannah didn't
-  // intend to change. Superseded by `action`; kept only for adapters older than
-  // compat_version 2, which don't understand `action` yet and ignore it entirely.
-  // Senders should populate both until those adapters are no longer in use.
-  int32  presence_state = 2 [deprecated = true];
   ResidentType type     = 3;
-  // Preferred over `presence_state`: sets only the single presence.{away,home,night}
-  // flag this action corresponds to, letting the residents adapter's own consistency
-  // guard handle the rest.
+  // Sets only the single presence.{away,home,night} flag this action corresponds to,
+  // letting the residents adapter's own consistency guard handle the rest.
   ResidentPresenceAction action = 4;
 }
 
@@ -165,8 +188,6 @@ message AgentSatelliteUpdate {
   bool   online       = 4;  // true = registered/online, false = gone/offline
   optional int32 volume = 5;  // current volume level (0–100); absent = no change
   optional bool  mute   = 6;  // current mute state; absent = no change
-  reserved 7;
-  reserved "serial";          // removed: device_id is the hardware serial since v0.34
   string display_name = 8;  // human-readable name from Core DB (empty = fall back to device_id)
   optional bool  dnd    = 9;  // current do-not-disturb state; absent = no change
 }
@@ -195,61 +216,17 @@ message AgentNotification {
   string severity = 3;  // "alert" | "notify" | "info" — only used when direct=false
 }
 
-message AgentStateValue {
-    string value = 1;
-    bool ack      = 2;
-}
-
-// A device from the ioBroker adapter
-message AgentDevice {
-    option (compat_version) = 3;
-
-    string state_id  = 1;
-    string floor     = 2;
-    string room      = 3;  // room_id: stable enum ID segment, e.g. "wohnzimmer" or "living_room"
-    string device    = 4;
-    string device_type        = 5;
-    repeated string functions = 6;
-    AgentStateValue value     = 7;
-    map<string, string> room_names = 8;  // all display names from ioBroker enum, e.g. {"de": "Wohnzimmer", "en": "Living Room"}
-    StateType state_type      = 9;   // derived from ioBroker's common.type/role/states
-    EnumValues enum_values    = 10;  // only set when state_type is ENUM or COLOR
-    bool writable = 11; // derived from ioBroker's common.write
-    // Grouping ID for the device this state belongs to (the adapter's own
-    // `deviceId`, one path segment up from state_id) — lets Core group sibling
-    // states without guessing from state_id's path depth. Empty = adapter hasn't
-    // been updated yet; Core falls back to its own path-depth heuristic (hannah#257).
-    string device_id     = 12;
-    // Semantic role of this specific state (e.g. "on", "level", "color", "current",
-    // "expected"), resolved by the adapter from the state's ioBroker common.role —
-    // same per-state basis as device_type, not aggregated across sibling states
-    // (a thermostat's "current" and "expected" states have different roles but
-    // belong to one device). Empty = adapter hasn't been updated yet or role is
-    // unresolvable; Core falls back to its iobroker.state_names default table
-    // (hannah#256, hannah#257).
-    string canonical_key = 13;
-    // Whether this device's actuator uses the inverted convention (0%=open,
-    // 100%=closed) instead of Hannah's default (0%=closed, 100%=open), e.g.
-    // some Homematic/KNX shutter/awning actuators. Unset = unknown/no override,
-    // not `false` (hannah-proto#4).
-    optional bool inverted = 14;
-}
-
-// a list with all known devices from the ioBroker adapter
-message AgentDeviceSnapshot {
-    repeated AgentDevice devices = 1;
-}
-
 // A room from the ioBroker adapter's enum.rooms.* catalog — independent of devices,
 // so rooms without any device yet are still known to Hannah (e.g. before the first
-// satellite is provisioned into a brand-new room).
+// satellite is provisioned into a brand-new room). TypedDevice.room refers to
+// room_id, the display names live here only.
 message AgentRoom {
     string room_id = 1;  // enum ID segment, e.g. "wohnzimmer"
     map<string, string> display_names = 2;  // all display names from ioBroker enum, e.g. {"de": "Wohnzimmer", "en": "Living Room"}
 }
 
 // Full room catalog from the ioBroker adapter. Sent on AgentConnect and whenever
-// enum.rooms.* changes, independent of AgentDeviceSnapshot.
+// enum.rooms.* changes, independent of TypedDeviceSnapshot.
 message AgentRoomSnapshot {
     repeated AgentRoom rooms = 1;
 }
@@ -294,8 +271,6 @@ message AgentBleUpdate {
 // gas_resistance is omitted (0.0) when not available (BMP280+AHT20 hardware).
 // iaq/co2_equiv/voc_equiv are omitted (0.0) when BSEC2 is not calibrated yet.
 message AgentSensorUpdate {
-  reserved 5;
-  reserved "gas_resistance";  // removed: BSEC2 replaces raw VOC resistance
   string device          = 1;  // satellite device ID
   float  temperature     = 2;  // °C
   float  pressure        = 3;  // hPa

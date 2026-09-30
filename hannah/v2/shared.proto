@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+package hannah.v2;
+
+option go_package = "github.com/NurPech/hannah-proto-go/hannahv2;hannahv2";
+
+message Empty {}
+
+message StatusResponse {
+  bool   ok      = 1;
+  string message = 2;
+}

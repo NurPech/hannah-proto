@@ -1,10 +1,9 @@
 syntax = "proto3";
 
-package hannah;
+package hannah.v2;
 
-option go_package = "github.com/NurPech/hannah-proto-go;hannahproto";
+option go_package = "github.com/NurPech/hannah-proto-go/hannahv2;hannahv2";
 
-import "hannah/options.proto";
 
 message SatelliteCaptureRequest {
   string device_id   = 1;
@@ -39,7 +38,6 @@ message SatelliteAudioChunk {
 // ReleaseSatelliteCapture, pushed proactively instead of polled.
 // capture_mode is only meaningful when sample_type is hey_hannah.
 message CaptureCommand {
-  option (compat_version) = 2;
 
   string device_id = 1;
   SampleType sample_type = 2;
@@ -49,8 +47,6 @@ message CaptureCommand {
 
 enum CaptureMode {
   CAPTURE_MODE_UNSPECIFIED = 0;
-  reserved 1;
-  reserved "CAPTURE_MODE_MANUAL";  // removed: identical in practice to CAPTURE_MODE_PTT, use that instead
   CAPTURE_MODE_PTT = 2;
   CAPTURE_MODE_PLINK = 3;
 }

@@ -1,15 +1,13 @@
 syntax = "proto3";
 
-package hannah;
+package hannah.v2;
 
-option go_package = "github.com/NurPech/hannah-proto-go;hannahproto";
+option go_package = "github.com/NurPech/hannah-proto-go/hannahv2;hannahv2";
 
 message Satellite {
   string device_id    = 1;
   string room         = 2;   // live-reported room (UDP/proxy registration); empty if not connected
   string address      = 3;   // IP:port of the UDP satellite; empty if not connected
-  reserved 4;
-  reserved "serial";         // removed: device_id is the hardware serial since v0.34
   string display_name = 5;   // human-readable name from Core DB (empty if not provisioned)
   string room_id            = 6;   // room assigned in Core DB, "" = unassigned
   string room_display_name  = 7;   // display name of room_id

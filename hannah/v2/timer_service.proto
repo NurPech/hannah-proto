@@ -1,8 +1,8 @@
 syntax = "proto3";
 
-package hannah;
+package hannah.v2;
 
-option go_package = "github.com/NurPech/hannah-proto-go;hannahproto";
+option go_package = "github.com/NurPech/hannah-proto-go/hannahv2;hannahv2";
 
 // Sent by Hannah Core over the TimerConnect stream.
 message TimerCommand {
@@ -32,8 +32,6 @@ message TimerCreate {
   string              timer_id = 1;  // UUID assigned by Hannah
   string              label    = 2;  // human-readable label, e.g. "Spazieren gehen"
   int64               fire_at  = 3;  // Unix timestamp (seconds) when to fire
-  reserved 4, 5;
-  reserved "room", "roomie_id";
   map<string, string> metadata = 6;  // opaque to the Timer Service — e.g. "room", "roomie_id", "trigger_id"
 }
 
@@ -76,7 +74,5 @@ message TimerInfo {
   string              timer_id = 1;
   string              label    = 2;
   int64               fire_at  = 3;  // Unix timestamp (seconds)
-  reserved 4, 5;
-  reserved "room", "roomie_id";
   map<string, string> metadata = 6;
 }

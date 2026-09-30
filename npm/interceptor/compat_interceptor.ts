@@ -30,7 +30,7 @@ export { DEFAULT_COMPAT_VERSION };
 
 /** `methodPath` is the full gRPC path (e.g. "/hannah.v1.HannahService/SubmitText"),
  * matching the keys gen-compat-versions.js writes into REQUIRED_COMPAT_VERSIONS —
- * the bare name would be ambiguous between hannah and hannah.v1. */
+ * the bare name would be ambiguous between hannah.v1 and hannah.v2. */
 function getRequiredCompatVersion(methodPath: string): number {
   return REQUIRED_COMPAT_VERSIONS[methodPath] ?? DEFAULT_COMPAT_VERSION;
 }

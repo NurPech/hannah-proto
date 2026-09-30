@@ -42,14 +42,15 @@ const DefaultCompatVersion int32 = 1
 
 // hannahPackages are the proto packages whose services the interceptors cover:
 // every service in them (HannahService, LogService, ...), for both API
-// generations (hannah-proto#11, #14) — like the generated TypeScript table.
-// Looked up in the global registry instead of imported: hannahv1 imports this
-// package (shared options.proto), so importing it back would be a cycle. A
-// package's services are only registered if the consumer imports it — missing
-// ones are skipped.
+// generations (hannah-proto#11, #14, #19) — like the generated TypeScript table.
+// Looked up in the global registry instead of imported: hannahv1 and hannahv2
+// import this package (shared options.proto), so importing them back would be
+// a cycle. A package's services are only registered if the consumer imports
+// it — missing ones are skipped. The unversioned `hannah` package is gone since
+// hannah.v2.
 var hannahPackages = []protoreflect.FullName{
-	"hannah",
 	"hannah.v1",
+	"hannah.v2",
 }
 
 var (

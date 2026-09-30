@@ -1,8 +1,8 @@
 syntax = "proto3";
 
-package hannah;
+package hannah.v2;
 
-option go_package = "github.com/NurPech/hannah-proto-go;hannahproto";
+option go_package = "github.com/NurPech/hannah-proto-go/hannahv2;hannahv2";
 
 // Sent by the ioBroker adapter (WebFlasher) before flashing a satellite.
 // Hannah stores the seed + pre-config; when the satellite first connects with

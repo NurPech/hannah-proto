@@ -1,8 +1,8 @@
 syntax = "proto3";
 
-package hannah;
+package hannah.v2;
 
-option go_package = "github.com/NurPech/hannah-proto-go;hannahproto";
+option go_package = "github.com/NurPech/hannah-proto-go/hannahv2;hannahv2";
 
 // Infrastructure services that Hannah Core announces to all connected components
 // (service discovery). Typed on purpose — a new kind of service gets a new enum value,

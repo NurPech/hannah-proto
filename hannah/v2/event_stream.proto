@@ -1,10 +1,10 @@
 syntax = "proto3";
 
-package hannah;
+package hannah.v2;
 
-option go_package = "github.com/NurPech/hannah-proto-go;hannahproto";
+option go_package = "github.com/NurPech/hannah-proto-go/hannahv2;hannahv2";
 
-import "hannah/car_state.proto";
+import "hannah/v2/car_state.proto";
 
 message EventFilter {
   // If empty, subscribe to all event types.

@@ -1,28 +1,28 @@
 syntax = "proto3";
 
-package hannah;
+package hannah.v2;
 
-option go_package = "github.com/NurPech/hannah-proto-go;hannahproto";
+option go_package = "github.com/NurPech/hannah-proto-go/hannahv2;hannahv2";
 
-import "hannah/shared.proto";
-import "hannah/user_registry.proto";
-import "hannah/control.proto";
-import "hannah/satellite.proto";
-import "hannah/car_state.proto";
-import "hannah/event_stream.proto";
-import "hannah/satellite_proxy.proto";
-import "hannah/device_control_menu.proto";
-import "hannah/satellite_provisioning.proto";
-import "hannah/speaker_enrollment.proto";
-import "hannah/agent.proto";
-import "hannah/wakeword_capture.proto";
-import "hannah/timer_service.proto";
-import "hannah/timer_admin.proto";
-import "hannah/automation.proto";
-import "hannah/activity_log.proto";
-import "hannah/messages.proto";
-import "hannah/channel.proto";
-import "hannah/infrastructure.proto";
+import "hannah/v2/shared.proto";
+import "hannah/v2/user_registry.proto";
+import "hannah/v2/control.proto";
+import "hannah/v2/satellite.proto";
+import "hannah/v2/car_state.proto";
+import "hannah/v2/event_stream.proto";
+import "hannah/v2/satellite_proxy.proto";
+import "hannah/v2/device_control_menu.proto";
+import "hannah/v2/satellite_provisioning.proto";
+import "hannah/v2/speaker_enrollment.proto";
+import "hannah/v2/agent.proto";
+import "hannah/v2/wakeword_capture.proto";
+import "hannah/v2/timer_service.proto";
+import "hannah/v2/timer_admin.proto";
+import "hannah/v2/automation.proto";
+import "hannah/v2/activity_log.proto";
+import "hannah/v2/messages.proto";
+import "hannah/v2/channel.proto";
+import "hannah/v2/infrastructure.proto";
 
 // ============================================================
 //  Hannah gRPC Service

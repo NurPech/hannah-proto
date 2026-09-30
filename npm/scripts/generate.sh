@@ -25,8 +25,10 @@ rm -rf src
 # ts-proto mirrors the source .proto directory (hannah/) into the output —
 # flatten back to a single directory so index.ts's barrel loop below (and
 # every published import path) stays exactly as before the proto move.
-# hannah/v1/ comes along as src/v1/ (hannah-proto#11); ts-proto's relative
-# imports (`./shared`, `../options`) still resolve after the move.
+# hannah/v1/ and hannah/v2/ come along as src/v1/ and src/v2/ (hannah-proto#11,
+# #19); ts-proto's relative imports (`./shared`, `../options`) still resolve
+# after the move. Of the former unversioned package only the shared
+# options.proto is left in hannah/ (hannah-proto#19).
 mv src/hannah/* src/
 rmdir src/hannah
 
@@ -65,13 +67,17 @@ echo "export const PROTO_VERSION = $(cat ../PROTO_VERSION);" > src/version.ts
     if [ "$base" = "version" ] || [ "$base" = "index" ]; then continue; fi
     echo "export * as ${base} from './${base}';"
   done
-  # hannah.v1 (hannah-proto#11) as its own namespace: `v1.agent.AgentMessage`.
+  # The API generations (hannah-proto#11, #19) as their own namespaces:
+  # `v1.agent.AgentMessage`, `v2.agent.AgentMessage`.
   echo "export * as v1 from './v1';"
+  echo "export * as v2 from './v2';"
 } > src/index.ts
 
-# Same namespaced barrel for the v1 package.
-for f in src/v1/*.ts; do
-  base="$(basename "$f" .ts)"
-  if [ "$base" = "index" ]; then continue; fi
-  echo "export * as ${base} from './${base}';"
-done > src/v1/index.ts
+# Same namespaced barrel for each generation.
+for gen in v1 v2; do
+  for f in src/$gen/*.ts; do
+    base="$(basename "$f" .ts)"
+    if [ "$base" = "index" ]; then continue; fi
+    echo "export * as ${base} from './${base}';"
+  done > src/$gen/index.ts
+done

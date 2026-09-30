@@ -2,7 +2,7 @@
 
 Protobuf/gRPC schema definitions for the Hannah voice assistant ecosystem (Core, satellites, WebUI, ioBroker adapter, Telegram bot, and other consumers). This repo is the single source of truth for the wire protocol shared across all of them.
 
-The `.proto` files live under `hannah/`, one per functional area — satellite control, event streaming, the ioBroker agent bridge, user registry, timers, automations, and so on. Nothing here is application code, just schema.
+The `.proto` files live under `hannah/` (per API generation in `hannah/v2/` and `hannah/v1/`), one per functional area — satellite control, event streaming, the ioBroker agent bridge, user registry, timers, automations, and so on. Nothing here is application code, just schema.
 
 ## Distribution
 
@@ -16,26 +16,34 @@ Three independent, tag-triggered publish targets — pick whichever matches your
 
 Go has no separate package registry, so that tagged GitHub repo *is* the package — `go get` resolves it directly.
 
-## API generations: hannah.v1
+## API generations: hannah.v1 and hannah.v2
 
-The schema exists in two packages side by side:
+The schema lives in versioned packages side by side:
 
 | Package | Files | Status |
 |---|---|---|
-| `hannah.v1` | `hannah/v1/*.proto` | **current generation** — all changes go here |
-| `hannah` (unversioned) | `hannah/*.proto` | frozen (N−1), kept so older components keep working |
+| `hannah.v2` | `hannah/v2/*.proto` | **current generation (N)** — all changes go here |
+| `hannah.v1` | `hannah/v1/*.proto` | frozen (N−1), kept so older components keep working |
 
-Both carry the same services and messages, but under different gRPC method paths (`/hannah.v1.HannahService/...` vs `/hannah.HannahService/...`), so a server can serve both at once and gRPC routes each call to the right one. Hannah Core serves the current generation and the one before it (N and N−1, never more). Clients use the current generation and fall back to the previous one if Core answers `UNIMPLEMENTED` (Core too old).
+The unversioned `hannah` package is gone since `hannah.v2`: a generation older than N−1 is removed. Only `hannah/options.proto` (the `compat_version` extension) is left in `hannah/`, shared by both generations and not copied.
 
-A breaking change never happens inside a generation — it starts the next one (`hannah.v2`), and the oldest one is removed. `hannah/options.proto` (the `compat_version` extension) is shared by both packages, not copied. The API generation is independent of the package version: `hannah.v1` ships in 4.x.
+Both carry the same services, but under different gRPC method paths (`/hannah.v2.HannahService/...` vs `/hannah.v1.HannahService/...`), so a server can serve both at once and gRPC routes each call to the right one. Hannah Core serves the current generation and the one before it (N and N−1, never more). Clients use the current generation and fall back to the previous one if Core answers `UNIMPLEMENTED` (Core too old).
 
-| Language | Current generation | Previous generation |
+A breaking change never happens inside a generation — it starts the next one (`hannah.v3`), and the oldest one is removed. The API generation is independent of the package version: `hannah.v2` ships in 5.x, `hannah.v1` in 4.x and 5.x.
+
+| Language | Current generation (N) | Previous generation (N−1) |
 |---|---|---|
-| Python | `from hannah_proto.v1 import hannah_pb2` | `from hannah_proto import hannah_pb2` |
-| TypeScript | `import { v1 } from '@m1kad0/hannah-proto'` → `v1.agent.AgentMessage` | `import { agent } from '@m1kad0/hannah-proto'` |
-| Go | `github.com/NurPech/hannah-proto-go/v4/hannahv1` | `github.com/NurPech/hannah-proto-go/v4` |
+| Python | `from hannah_proto.v2 import hannah_pb2` | `from hannah_proto.v1 import hannah_pb2` |
+| TypeScript | `import { v2 } from '@m1kad0/hannah-proto'` → `v2.agent.AgentMessage` | `import { v1 } from '@m1kad0/hannah-proto'` |
+| Go | `github.com/NurPech/hannah-proto-go/v5/hannahv2` | `github.com/NurPech/hannah-proto-go/v5/hannahv1` |
 
-CI rejects any change under `hannah/` outside `hannah/v1/`.
+CI rejects any change under `hannah/` outside `hannah/v2/` (deletions are allowed — that is how an old generation leaves).
+
+### What `hannah.v2` changes against `hannah.v1`
+
+- **Typed device model** (`hannah/v2/device_model.proto`): Hannah defines fixed device classes (`DeviceClass`) with slots (`SlotKind`, `Slot`, `SlotValue`) and their scales and units. The ioBroker adapter maps ioBroker objects onto them, normalizes the values and writes slot commands (`SetSlot`) back to the real states; Hannah Core never sees ioBroker state IDs for devices. The agent stream carries `TypedDeviceSnapshot`, `SlotUpdate` and `DeviceAvailability` (adapter → Core) and `SetSlot` (Core → adapter); `GetDevices`/`ControlDevice` work on slots.
+- **Removed:** the state-based device model (`AgentDevice`, `AgentDeviceSnapshot`, `canonical_key`, `StateType`, `EnumValues`), `AgentSetResident.presence_state`, all `reserved` entries and all `compat_version` options (a new generation starts at the implicit `1`). `AgentStateUpdate`, `AgentSetState` and `AgentWatchMore` stay for arbitrary watched states.
+- **Field numbers** of a changed message are not reused with another meaning inside the same lineage (`DeviceInfo`, `ControlDeviceRequest`), so bytes of one generation are never silently misread as the other. Between the generations, methods whose messages differ need a real translator, not a byte bridge.
 
 ## Versioning: PROTO_VERSION
 

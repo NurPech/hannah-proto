@@ -1,10 +1,9 @@
 syntax = "proto3";
 
-package hannah;
+package hannah.v2;
 
-import "hannah/options.proto";
 
-option go_package = "github.com/NurPech/hannah-proto-go;hannahproto";
+option go_package = "github.com/NurPech/hannah-proto-go/hannahv2;hannahv2";
 
 // --- Control ---
 
@@ -107,7 +106,6 @@ message SetGroupSatellitesRequest {
 // this", hannah#295) — renamed room -> target (hannah-proto#5) to stop calling that a room.
 
 message Trigger {
-  option (compat_version) = 2;
 
   string id               = 1;  // client-assigned slug, e.g. "aussentuer_abend"
   string when_json        = 2;  // JSON condition object or list (OR'd), see trigger_engine.py
@@ -127,7 +125,6 @@ message GetTriggersResponse {
 }
 
 message CreateTriggerRequest {
-  option (compat_version) = 2;
 
   string id               = 1;
   string when_json        = 2;
@@ -143,7 +140,6 @@ message CreateTriggerRequest {
 }
 
 message UpdateTriggerRequest {
-  option (compat_version) = 2;
 
   string id               = 1;
   string when_json        = 2;

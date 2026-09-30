@@ -1,0 +1,156 @@
+syntax = "proto3";
+
+package hannah.v2;
+
+option go_package = "github.com/NurPech/hannah-proto-go/hannahv2;hannahv2";
+
+// Typed device model (hannah-proto#19, hannah#377).
+//
+// Hannah defines what it understands: a fixed set of device classes, each with slots.
+// The ioBroker adapter is the translation layer — it maps ioBroker objects onto these
+// classes and slots, normalizes the values to the scales documented below and writes
+// Hannah's slot commands back to the real states. Hannah Core never sees ioBroker state
+// IDs for devices and knows no value ranges of its own.
+//
+// A device's capabilities are simply the slots it carries: a light with a `BRIGHTNESS`
+// slot can be dimmed, one without cannot. Hannah answers honestly when a slot is missing.
+
+// What kind of device this is. A class exists per family of verbs, not per feature:
+// a measuring socket is a SOCKET with a filled POWER slot, not a class of its own.
+enum DeviceClass {
+  DEVICE_CLASS_UNSPECIFIED = 0;
+  // Switchable light. Slots: ON (required), BRIGHTNESS, COLOR, COLOR_TEMPERATURE.
+  DEVICE_CLASS_LIGHT = 1;
+  // Socket/plug. Slots: ON (required), POWER, ENERGY, VOLTAGE, CURRENT.
+  DEVICE_CLASS_SOCKET = 2;
+  // Any other switchable boolean that fits no other class (scene-like switches,
+  // flags, vendor specific switches). Slots: ON (required).
+  DEVICE_CLASS_GENERIC_BINARY_SWITCH = 3;
+  // Thermostat/room climate. Slots: TARGET_TEMPERATURE (required), TEMPERATURE,
+  // HUMIDITY, VALVE. Comfort/eco setpoints and similar are not slots.
+  DEVICE_CLASS_THERMOSTAT = 4;
+  // Blind, shutter, awning. Slots: POSITION (required), TILT, STOP.
+  DEVICE_CLASS_COVER = 5;
+  // Read-only measurements. At least one measurement slot: TEMPERATURE, HUMIDITY,
+  // ILLUMINANCE, PRESSURE, CO2, IAQ, VOC, POWER, ENERGY, MOTION.
+  DEVICE_CLASS_SENSOR = 6;
+  // Door or window contact. Slots: OPEN (required, read-only).
+  DEVICE_CLASS_CONTACT = 7;
+  // Fallback for anything that matches no class: a list of typed values
+  // (GENERIC_NUMBER / GENERIC_BOOL / GENERIC_TEXT), each with label and unit.
+  DEVICE_CLASS_GENERIC = 8;
+}
+
+// What a slot means, and therefore which scale and unit its value has. The adapter
+// normalizes every value to exactly this scale; Core relies on it.
+enum SlotKind {
+  SLOT_KIND_UNSPECIFIED = 0;
+
+  // --- switching and light ---
+  SLOT_KIND_ON                 = 1;   // boolean: true = on
+  SLOT_KIND_BRIGHTNESS         = 2;   // number, 0-100 (%)
+  SLOT_KIND_COLOR              = 3;   // rgb, 0xRRGGBB
+  SLOT_KIND_COLOR_TEMPERATURE  = 4;   // number, Kelvin (e.g. 2700 warm white, 6500 cold white)
+
+  // --- electricity ---
+  SLOT_KIND_POWER              = 10;  // number, W
+  SLOT_KIND_ENERGY             = 11;  // number, kWh (cumulative)
+  SLOT_KIND_VOLTAGE            = 12;  // number, V
+  SLOT_KIND_CURRENT            = 13;  // number, A
+
+  // --- climate ---
+  SLOT_KIND_TARGET_TEMPERATURE = 20;  // number, °C, writable setpoint
+  SLOT_KIND_TEMPERATURE        = 21;  // number, °C, measured value
+  SLOT_KIND_HUMIDITY           = 22;  // number, 0-100 (% relative)
+  SLOT_KIND_VALVE              = 23;  // number, 0-100 (% open)
+
+  // --- cover ---
+  SLOT_KIND_POSITION           = 30;  // number, 0-100 (%), 100 = open, 0 = closed (the adapter compensates inverted actuators)
+  SLOT_KIND_TILT               = 31;  // number, 0-100 (%)
+  SLOT_KIND_STOP               = 32;  // boolean trigger: true = stop movement, not a state
+
+  // --- binary sensors ---
+  SLOT_KIND_OPEN               = 40;  // boolean: true = open (door/window contact)
+  SLOT_KIND_MOTION             = 41;  // boolean: true = motion/presence detected
+
+  // --- further measurements ---
+  SLOT_KIND_ILLUMINANCE        = 50;  // number, lux
+  SLOT_KIND_PRESSURE           = 51;  // number, hPa
+  SLOT_KIND_CO2                = 52;  // number, ppm
+  SLOT_KIND_IAQ                = 53;  // number, index 0-500
+  SLOT_KIND_VOC                = 54;  // number, ppm
+
+  // --- generic values (DEVICE_CLASS_GENERIC), described by label and unit ---
+  SLOT_KIND_GENERIC_NUMBER     = 90;
+  SLOT_KIND_GENERIC_BOOL       = 91;
+  SLOT_KIND_GENERIC_TEXT       = 92;
+}
+
+// The value of a slot, typed. Which case is used follows from the SlotKind.
+message SlotValue {
+  oneof value {
+    bool   boolean = 1;
+    double number  = 2;
+    string text    = 3;
+    uint32 rgb     = 4;  // 0xRRGGBB, used by SLOT_KIND_COLOR
+  }
+}
+
+// One capability of a device.
+message Slot {
+  // Stable ID of this slot within its device, chosen by the adapter. For the standard
+  // kinds the lowercase kind name without prefix ("on", "brightness", "target_temperature")
+  // is recommended; it is what SlotUpdate and SetSlot address. GENERIC slots need it
+  // because a device can carry several of the same kind.
+  string slot_id  = 1;
+  SlotKind kind   = 2;
+  SlotValue value = 3;     // current value; unset = unknown
+  bool writable   = 4;     // false = read-only (measurements, contacts)
+  string unit     = 5;     // informational, and for GENERIC slots; standard kinds have a fixed unit (see SlotKind)
+  string label    = 6;     // human-readable name, used by GENERIC slots
+  // Minimum user trust level (0-10, same scale as the users' trust level) required to
+  // control this slot, read by the adapter from common.custom["hannah.0"].neededTrust.
+  // Unset = not configured, no restriction — distinct from an explicit 0.
+  optional int32 required_trust_level = 7;
+}
+
+// A device, as the adapter derived it from the ioBroker objects (grouping, class, slots).
+message TypedDevice {
+  string device_id = 1;   // stable ID of the device, chosen by the adapter; not an ioBroker state ID
+  string name      = 2;   // display name, mandatory
+  string room      = 3;   // room_id (enum ID segment, see AgentRoom), mandatory
+  string floor     = 4;   // floor, empty = none
+  DeviceClass device_class = 5;
+  repeated Slot slots      = 6;
+  bool available           = 7;  // false = device currently unreachable
+}
+
+// All devices the adapter knows. Sent on AgentConnect and whenever the set of devices
+// or their structure changes (devices added/removed, slots added/removed).
+message TypedDeviceSnapshot {
+  repeated TypedDevice devices = 1;
+}
+
+// A slot changed. ack=true means the device confirmed the value (as opposed to the
+// "desired" value), Hannah uses this to verify that a SetSlot was executed.
+message SlotUpdate {
+  string device_id = 1;
+  string slot_id   = 2;
+  SlotValue value  = 3;
+  bool   ack       = 4;
+  int64  ts        = 5;  // Unix timestamp in milliseconds
+}
+
+// A device became reachable or unreachable, without any of its slots changing.
+message DeviceAvailability {
+  string device_id = 1;
+  bool   available = 2;
+}
+
+// Hannah wants to control a slot. The adapter maps this onto the real state(s) and
+// denormalizes the value; the confirmed result comes back as a SlotUpdate with ack=true.
+message SetSlot {
+  string device_id = 1;
+  string slot_id   = 2;
+  SlotValue value  = 3;
+}

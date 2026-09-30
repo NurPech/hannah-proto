@@ -1,10 +1,11 @@
 """hannah.v1 — the first versioned API generation (hannah-proto#11).
 
-Lives next to the unversioned `hannah` package (hannah_proto itself), which is
-frozen as N−1. Both can be imported in the same process: their proto packages
-(`hannah` vs `hannah.v1`) and file names (`hannah/x.proto` vs `hannah/v1/x.proto`)
-differ, so nothing collides in the descriptor pool. `hannah/options.proto` is
-shared, not copied — the compat_version extension exists only once.
+Frozen as N−1 since hannah.v2 (hannah-proto#19); the unversioned `hannah` package
+it used to sit next to is gone. `hannah_proto.v1` and `hannah_proto.v2` can be
+imported in the same process: their proto packages (`hannah.v1` vs `hannah.v2`)
+and file names (`hannah/v1/x.proto` vs `hannah/v2/x.proto`) differ, so nothing
+collides in the descriptor pool. `hannah/options.proto` is shared, not copied —
+the compat_version extension exists only once.
 
     from hannah_proto.v1 import hannah_pb2, hannah_pb2_grpc
 """

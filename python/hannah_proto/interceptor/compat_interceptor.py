@@ -74,17 +74,18 @@ def build_required_versions(service: ServiceDescriptor) -> Dict[str, int]:
 
 
 def hannah_services() -> Tuple[ServiceDescriptor, ...]:
-    """Every service of both API generations — the unversioned `hannah`
-    package (N−1, frozen) and `hannah.v1` — so HannahService, LogService, ...
-    The same method can be called on either path (hannah-proto#11), so the
-    interceptors cover all of them by default, like Go's and TypeScript's
-    (hannah-proto#14). Imported here, not at module level, to keep this module
-    importable from the generated packages."""
-    import hannah_proto
+    """Every service of both API generations — `hannah.v1` (N−1, frozen) and
+    `hannah.v2` (N) — so HannahService, LogService, ... The same method can be
+    called on either path (hannah-proto#11), so the interceptors cover all of
+    them by default, like Go's and TypeScript's (hannah-proto#14). Imported
+    here, not at module level, to keep this module importable from the
+    generated packages. The unversioned `hannah` package is gone since
+    hannah.v2 (hannah-proto#19)."""
     import hannah_proto.v1
+    import hannah_proto.v2
 
     services = []
-    for package in (hannah_proto, hannah_proto.v1):
+    for package in (hannah_proto.v1, hannah_proto.v2):
         # Importing the package imports every *_pb2 module (see its __init__).
         for module_info in pkgutil.iter_modules(package.__path__):
             if not module_info.name.endswith("_pb2"):
@@ -95,7 +96,7 @@ def hannah_services() -> Tuple[ServiceDescriptor, ...]:
 
 
 def _required_versions_for(services: Tuple[ServiceDescriptor, ...]) -> Dict[str, int]:
-    """Merged map over `services` (default: every service of `hannah` and `hannah.v1`).
+    """Merged map over `services` (default: every service of `hannah.v1` and `hannah.v2`).
     Keys are full method paths, so methods of different services never collide."""
     for service in services:
         if not isinstance(service, ServiceDescriptor):
@@ -119,7 +120,7 @@ class CompatVersionInterceptor(grpc.ServerInterceptor):
     only let through calls that never had a breaking change."
 
     Covers the given services, by default every service of both generations
-    (`hannah` and `hannah.v1`), so one instance serves both paths.
+    (`hannah.v1` and `hannah.v2`), so one instance serves both paths.
     """
 
     def __init__(self, *services: ServiceDescriptor, enforce: bool = False):

@@ -1,10 +1,9 @@
 syntax = "proto3";
 
-package hannah;
+package hannah.v2;
 
-option go_package = "github.com/NurPech/hannah-proto-go;hannahproto";
+option go_package = "github.com/NurPech/hannah-proto-go/hannahv2;hannahv2";
 
-import "hannah/options.proto";
 
 // Sent by the proxy periodically to keep the RegisterProxy stream alive.
 message ProxyHeartbeat {
@@ -43,14 +42,11 @@ message PlayAudioCommand {
 
 // Sent by the proxy when a satellite has finished recording an utterance.
 message SubmitSatelliteAudioRequest {
-  option (compat_version) = 3;
 
   string device_id    = 1;  // satellite device name
   string room         = 2;  // room name (from proxy registration / config)
   bytes  audio_pcm    = 3;  // raw PCM, 16-bit signed mono, 16000 Hz
   int32  sample_rate  = 4;  // sample rate of the audio (typically 16000)
-  reserved 5;
-  reserved "speaker_user_id";  // removed: Hannah Core resolves the speaker itself via its own VoiceID client (hannah#210)
 }
 
 message SubmitSatelliteAudioResponse {
@@ -63,10 +59,6 @@ message SubmitSatelliteAudioResponse {
 
 message SatelliteRegistration {
   string device_id = 1;  // satellite device_id (== eFuse MAC since v0.34), e.g. "e072a1d01adc"
-  reserved 2;
-  reserved "room";       // removed: RoomManager is the sole authority for room assignment
   string address   = 3;  // IP of the UDP satellite as seen by the proxy, e.g. "192.168.8.42"
-  reserved 4;
-  reserved "serial";     // removed: device_id is the hardware serial since v0.34
   string seed      = 5;  // one-time pairing token from NVS (empty after successful pairing)
 }

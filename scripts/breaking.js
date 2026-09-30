@@ -17,11 +17,12 @@ if (!latestTag) {
 
 console.log(`Against: ${latestTag}`);
 
-// The unversioned hannah package is frozen since hannah.v1 exists (N−1,
-// hannah-proto#11) — same check as the lint:buf CI job.
-const frozenChanges = run(`git diff --name-only ${latestTag} -- hannah/ ":!hannah/v1/"`);
+// Only the current generation hannah/v2/ may change (hannah-proto#11, #19):
+// hannah/v1/ is frozen as N−1, and so is the shared options.proto — same check
+// as the lint:buf CI job. Deletions are allowed (how an old generation leaves).
+const frozenChanges = run(`git diff --name-only --diff-filter=d ${latestTag} -- hannah/ ":!hannah/v2/"`);
 if (frozenChanges) {
-    console.error('The unversioned hannah package is frozen (N−1). Make changes in hannah/v1/ instead. Changed:');
+    console.error('hannah/v1/ and options.proto are frozen (N−1). Make changes in hannah/v2/ instead. Changed:');
     console.error(frozenChanges);
     process.exit(1);
 }
