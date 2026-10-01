@@ -141,6 +141,12 @@ message Slot {
   // Empty = no statement, every value of the vocabulary may work. Hannah uses it to answer
   // honestly when a device cannot do what was asked.
   repeated string options = 8;
+  // How a trigger (and any client building triggers) refers to the value behind this slot: the
+  // identifier the adapter uses for it, for ioBroker the state ID. Opaque to Hannah Core, which
+  // only passes it through (AgentWatchMore, AgentSetState, AgentStateUpdate, trigger conditions
+  // and actions). Empty = not addressable by triggers. Triggers compare against the raw value
+  // of the identified state (and its own scale), not against the normalized `value` above.
+  string identifier = 9;
 }
 
 // A device, as the adapter derived it from the ioBroker objects (grouping, class, slots).

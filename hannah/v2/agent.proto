@@ -61,15 +61,22 @@ message CaptureControl {
 }
 
 // A state change event for a state Hannah asked to watch (AgentWatchMore), e.g. the
-// trigger engine's conditions. Devices are not reported this way, they use SlotUpdate.
+// trigger engine's conditions. `state_id` is the identifier the adapter uses for the value
+// (for ioBroker the state ID, the same as `Slot.identifier` for a slot of a device). Devices
+// report their changes as SlotUpdate; a value that is both a slot and watched gets both.
 // ack=true means the device confirmed the value (as opposed to ack=false which is the
 // "desired" value). Hannah uses this to verify that a SetState command was executed
-// successfully.
+// successfully. The value is the raw one of that state, not normalized to a slot scale.
 message AgentStateUpdate {
-  string state_id = 1;  // full ioBroker state ID, e.g. "0_userdata.0.feeded"
+  string state_id = 1;  // identifier of the value, for ioBroker the full state ID, e.g. "0_userdata.0.feeded"
   string value    = 2;  // JSON-encoded value: "true", "42", "\"text\""
   bool   ack      = 3;  // true = confirmed by device
   int64  ts       = 4;  // Unix timestamp in milliseconds
+  // Field 5 is deliberately unused: in hannah.v1 it was `canonical_key`, a different type.
+  // true = the current value the adapter sends when it starts watching a state (its answer to
+  // AgentWatchMore), not a change. Hannah Core uses it to prefill the trigger engine's cache
+  // silently, without firing triggers: an update from "unknown" to a value is not a transition.
+  bool   initial  = 6;
 }
 
 enum ResidentType {
@@ -132,13 +139,14 @@ message AgentFirmwareEvent {
 // The adapter calls setForeignState(); the resulting ack=true AgentStateUpdate
 // confirms execution back to Hannah.
 message AgentSetState {
-  string state_id = 1;  // ioBroker state ID to write
+  string state_id = 1;  // identifier of the value to write, for ioBroker the state ID
   string value    = 2;  // JSON-encoded value
 }
 
-// Hannah requests additional state IDs to be included in the AgentStateUpdate stream.
-// Used by the trigger engine at runtime when triggers reference arbitrary state IDs
-// (e.g. unless.state: "0_userdata.0.feeded") that aren't covered by enum discovery.
+// Hannah requests additional identifiers (for ioBroker state IDs) to be included in the
+// AgentStateUpdate stream. Used by the trigger engine at runtime when triggers reference
+// arbitrary values (e.g. unless.state: "0_userdata.0.feeded") that aren't covered by enum
+// discovery. The adapter answers every new one with its current raw value, `initial` = true.
 message AgentWatchMore {
   repeated string state_ids = 1;
 }
