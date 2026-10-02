@@ -264,4 +264,11 @@ service HannahService {
   rpc CreateMessage (CreateMessageRequest) returns (StatusResponse);
   rpc ListMessages  (ListMessagesRequest)  returns (ListMessagesResponse);
   rpc DeleteMessage (DeleteMessageRequest) returns (StatusResponse);
+
+  // Liveness signal from a component. The component names itself in the call metadata
+  // (x-component, x-component-version, x-component-id), the message carries nothing yet.
+  rpc Heartbeat (HeartbeatRequest) returns (HeartbeatResponse);
 }
+
+message HeartbeatRequest {}
+message HeartbeatResponse {}
