@@ -14,11 +14,12 @@ enum ServiceKind {
 
 // Where a currently available infrastructure service can be reached.
 message ServiceEndpoint {
-  ServiceKind kind     = 1;
-  string      instance = 2;
-  string      host     = 3;
-  int32       port     = 4;
-  string      version  = 5;  // informational
+  ServiceKind kind        = 1;
+  string      instance    = 2;
+  string      host        = 3;
+  int32       port        = 4;
+  string      version     = 5;  // informational
+  int32       syslog_port = 6;  // UDP port of the collector's syslog receiver on `host`; 0 = none
 }
 
 // --- SubscribeInfrastructure (Hannah Core → components) ---
@@ -66,10 +67,11 @@ message LogCollectorMessage {
 
 // A second log collector registering with the same instance replaces the first.
 message LogCollectorRegister {
-  string instance = 1;
-  string host     = 2;  // empty = Hannah Core uses the stream's peer address
-  int32  port     = 3;
-  string version  = 4;  // informational
+  string instance    = 1;
+  string host        = 2;  // empty = Hannah Core uses the stream's peer address
+  int32  port        = 3;
+  string version     = 4;  // informational
+  int32  syslog_port = 5;  // UDP port of the syslog receiver, on the same host; 0 = no receiver
 }
 
 // Sent by Hannah Core over the LogCollectorConnect stream.

@@ -6,6 +6,9 @@
 
 ## **WORK IN PROGRESS**
 
+## 5.4.0 (2026-10-06)
+* Added: `hannah/v2/infrastructure.proto` — `LogCollectorRegister.syslog_port` (`int32`, field 5) and `ServiceEndpoint.syslog_port` (`int32`, field 6), the UDP port of the log collector's syslog receiver on the same host as the gRPC port. The collector reports it when it registers, Hannah Core passes it on through service discovery, so the satellites can be pointed at the receiver without the port being hardcoded anywhere but in the collector's config. `0` means the collector has no syslog receiver; a collector on `hannah.v1` (frozen) never reports it and counts as `0`. Purely additive in `hannah.v2` (no `hannah.v1` counterpart), `PROTO_VERSION` unchanged. `hannah-proto#26`
+
 ## 5.3.0 (2026-10-02)
 * Added: `hannah/v2/hannah`_service.proto — Heartbeat RPC (HeartbeatRequest, HeartbeatResponse). Unary RPC in hannah.v2.HannahService for components to send liveness signals, turning silence into an explicit connected signal. Identity (`x-component`, `x-component-version`, `x-component-id`) is sent via existing metadata headers instead of message fields. Uses dedicated empty request/response messages to allow future extensions without breaking changes. Purely additive in `hannah.v2` (no `hannah.v1` counterpart), package version minor bump, `PROTO_VERSION` unchanged. `hannah-proto#24`
 
