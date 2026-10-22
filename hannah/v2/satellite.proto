@@ -20,6 +20,7 @@ message Satellite {
   bool update_available       = 14; // true if the device has a new firmware available
   optional string new_version   = 15;
   bool smalltalk_followup_listen = 16; // #158: mic reopens after a Smalltalk answer instead of waiting for wake-word/PTT again
+  optional int32 led_brightness  = 17; // brightness of the LED ring in percent (0-100, 0 = ring off); absent = Core does not know the field. #27
 }
 
 message GetSatellitesResponse {
@@ -47,6 +48,12 @@ message SetSatelliteOwnerRequest {
 message SetSatelliteSmalltalkFollowupRequest {
   string device_id    = 1;
   bool   enabled       = 2;
+  int32  requestor_id  = 3; //requestor
+}
+
+message SetSatelliteLedBrightnessRequest {
+  string device_id    = 1;
+  int32  percent       = 2;  // 0-100, 0 = ring off
   int32  requestor_id  = 3; //requestor
 }
 

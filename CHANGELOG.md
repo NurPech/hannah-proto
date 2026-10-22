@@ -6,6 +6,9 @@
 
 ## **WORK IN PROGRESS**
 
+## 5.5.0 (2026-10-22)
+* Added: `hannah/v2/satellite.proto` — `Satellite.led_brightness` (`optional int32`, field 17), the brightness of the satellite's LED ring in percent (0-100, 0 = ring off). `optional` because `0` is a valid value and an absent field has to mean that Hannah Core does not know the field. New message `SetSatelliteLedBrightnessRequest` (`device_id`, `percent`, `requestor_id`) and the RPC `SetSatelliteLedBrightness` in `hannah/v2/hannah.proto`, next to `SetSatelliteSmalltalkFollowup`. In `hannah/v2/agent.proto` the ioBroker adapter can set the brightness with `AgentSatelliteControl.led_brightness` (`int32`, field 10, in the `control` oneof, like `volume` and `mute`) and Hannah Core reports the current value with `AgentSatelliteUpdate.led_brightness` (`optional int32`, field 10; absent = no change). Purely additive in `hannah.v2`, `hannah.v1` is untouched and does not see the brightness, `PROTO_VERSION` unchanged. An adapter whose Core does not know the new field learns that through the existing `ack_id` / `AgentAck` mechanism. `hannah-proto#27`
+
 ## 5.4.0 (2026-10-06)
 * Added: `hannah/v2/infrastructure.proto` — `LogCollectorRegister.syslog_port` (`int32`, field 5) and `ServiceEndpoint.syslog_port` (`int32`, field 6), the UDP port of the log collector's syslog receiver on the same host as the gRPC port. The collector reports it when it registers, Hannah Core passes it on through service discovery, so the satellites can be pointed at the receiver without the port being hardcoded anywhere but in the collector's config. `0` means the collector has no syslog receiver; a collector on `hannah.v1` (frozen) never reports it and counts as `0`. Purely additive in `hannah.v2` (no `hannah.v1` counterpart), `PROTO_VERSION` unchanged. `hannah-proto#26`
 

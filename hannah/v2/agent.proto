@@ -35,7 +35,7 @@ message AgentMessage {
 
 // Adapter instructs Hannah to control satellites in a room or a specific satellite.
 // room: room_id (enum ID segment) or "all" for all rooms.
-// device_id: if non-empty, only the named satellite is targeted (volume/mute/capture only);
+// device_id: if non-empty, only the named satellite is targeted (volume/mute/led_brightness/capture only);
 //            room is still required (used for room-scoped commands and as fallback).
 //            For capture, device_id is mandatory — never room-broadcast.
 message AgentSatelliteControl {
@@ -49,6 +49,7 @@ message AgentSatelliteControl {
     string announcement_ssml      = 6;  // speak SSML announcement
     string announcement_rephrase  = 8;  // speak announcement, text rephrased by LLM first
     CaptureControl capture        = 9;  // start/stop a Voice Collector capture on this satellite
+    int32  led_brightness         = 10; // set the brightness of the LED ring (0–100 percent, 0 = ring off). hannah-proto#27
   }
 }
 
@@ -187,7 +188,7 @@ message AgentSetResidentMood {
 }
 
 // Hannah notifies the adapter that a satellite registered or disconnected,
-// or that a satellite's volume or mute state changed.
+// or that a satellite's volume, mute, do-not-disturb state or LED brightness changed.
 // The adapter updates hannah.<instance>.satellites.rooms.<room_id>.* states accordingly.
 message AgentSatelliteUpdate {
   string device_id    = 1;  // satellite device_id (== eFuse MAC since v0.34); adapter uses as ioBroker object-ID
@@ -198,6 +199,7 @@ message AgentSatelliteUpdate {
   optional bool  mute   = 6;  // current mute state; absent = no change
   string display_name = 8;  // human-readable name from Core DB (empty = fall back to device_id)
   optional bool  dnd    = 9;  // current do-not-disturb state; absent = no change
+  optional int32 led_brightness = 10;  // current LED ring brightness (0–100 percent, 0 = ring off); absent = no change. hannah-proto#27
 }
 
 // Hannah Core deleted a satellite (RoomManager.delete_satellite()) — the adapter

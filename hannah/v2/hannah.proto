@@ -88,6 +88,9 @@ service HannahService {
   // Toggle whether the satellite's mic reopens after a Smalltalk answer instead of
   // waiting for wake-word/PTT again (silence-timeout lives in the satellite firmware). #158
   rpc SetSatelliteSmalltalkFollowup (SetSatelliteSmalltalkFollowupRequest) returns (StatusResponse);
+  // Set the brightness of the satellite's LED ring (0-100 percent, 0 = ring off). Core stores
+  // the value per satellite and passes it on to the satellite. #27
+  rpc SetSatelliteLedBrightness (SetSatelliteLedBrightnessRequest) returns (StatusResponse);
   // Delete existing satellite
   rpc DeleteSatellite (DeleteSatelliteRequest) returns (StatusResponse);
 
