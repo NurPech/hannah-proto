@@ -22,8 +22,8 @@
     "@grpc/grpc-js": "^1.14.4"
   },
   "devDependencies": {
-    "@grpc/grpc-js": "1.14.6",
-    "ts-proto": "2.18.0",
+    "@grpc/grpc-js": "1.14.7",
+    "ts-proto": "2.18.3",
     "typescript": "7.0.2"
   },
   "allowScripts": {

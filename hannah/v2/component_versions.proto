@@ -1,0 +1,39 @@
+syntax = "proto3";
+
+package hannah.v2;
+
+option go_package = "github.com/NurPech/hannah-proto-go/hannahv2;hannahv2";
+
+// Result of comparing the version a component instance runs with the latest public
+// version of that component (plain SemVer ordering).
+enum VersionComparison {
+  // Cannot be compared: the component has no public counterpart, no public version is
+  // known (lookup disabled or source unreachable) or a version is not valid SemVer.
+  VERSION_COMPARISON_UNSPECIFIED       = 0;
+  VERSION_COMPARISON_UP_TO_DATE        = 1;  // running == public
+  VERSION_COMPARISON_UPDATE_AVAILABLE  = 2;  // running <  public
+  // running > public, e.g. a release candidate on an own system. Not an error.
+  VERSION_COMPARISON_NEWER_THAN_PUBLIC = 3;
+}
+
+// One running instance of a component, as Hannah Core's component registry knows it.
+// One entry per instance, not per component: during a rollout two instances of the same
+// component may run different versions. Satellites are not part of this list (their
+// update state comes from the update server).
+message ComponentVersionInfo {
+  string            component      = 1;  // x-component name, e.g. "telegram"
+  string            instance_id    = 2;  // x-component-id, changes with every restart
+  string            version        = 3;  // version the instance runs
+  string            latest_version = 4;  // latest public version, empty if unknown
+  VersionComparison comparison     = 5;
+}
+
+message GetComponentVersionsResponse {
+  repeated ComponentVersionInfo components = 1;
+  // false when the lookup of public versions is disabled or the source has never been
+  // reachable. The running versions are returned either way.
+  bool  latest_available = 2;
+  // When the public versions were last fetched successfully (Unix timestamp, seconds),
+  // 0 if never. With a stale cache this is older than the request.
+  int64 latest_checked_at = 3;
+}

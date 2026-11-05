@@ -23,6 +23,7 @@ import "hannah/v2/activity_log.proto";
 import "hannah/v2/messages.proto";
 import "hannah/v2/channel.proto";
 import "hannah/v2/infrastructure.proto";
+import "hannah/v2/component_versions.proto";
 
 // ============================================================
 //  Hannah gRPC Service
@@ -271,6 +272,13 @@ service HannahService {
   // Liveness signal from a component. The component names itself in the call metadata
   // (x-component, x-component-version, x-component-id), the message carries nothing yet.
   rpc Heartbeat (HeartbeatRequest) returns (HeartbeatResponse);
+
+  // --- Component versions ---
+  // The component instances currently known to Hannah Core, each with the version it runs
+  // and how that compares to the latest public version (see VersionComparison). Satellites
+  // are not part of it. Never fails because the public versions cannot be fetched: then
+  // latest_available is false and only the running versions are returned.
+  rpc GetComponentVersions (Empty) returns (GetComponentVersionsResponse);
 }
 
 message HeartbeatRequest {}
